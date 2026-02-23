@@ -8,13 +8,11 @@
 <body>
 <%@ include file="../fragment/navbar.jsp" %>
 
-<div class="mt-5 text-center">
-    <h1 class="text-[var(--green))]">500</h1>
-    <p>Something went wrong on the server.</p>
-    <p>Please try again later.</p>
+<div class="container mt-5 text-center">
+    <h1 class="text-warning">400 - Bad Request</h1>
+    <p>Invalid request sent to the server.</p>
 </div>
 
 <%@ include file="../fragment/footer.jsp" %>
 </body>
 </html>
-
