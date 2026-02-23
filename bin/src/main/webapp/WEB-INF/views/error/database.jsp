@@ -8,13 +8,12 @@
 <body>
 <%@ include file="../fragment/navbar.jsp" %>
 
-<div class="mt-5 text-center">
-    <h1 class="text-[var(--green))]">500</h1>
-    <p>Something went wrong on the server.</p>
-    <p>Please try again later.</p>
+<div class="container mt-5 text-center">
+    <h1 class="text-danger">Database Error</h1>
+    <p>A system error occurred while processing your request.</p>
+    <p>Please contact the administrator.</p>
 </div>
 
 <%@ include file="../fragment/footer.jsp" %>
 </body>
 </html>
-

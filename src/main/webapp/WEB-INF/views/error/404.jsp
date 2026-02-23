@@ -7,12 +7,41 @@
 </head>
 <body>
 <%@ include file="../fragment/navbar.jsp" %>
-<div class="container mt-5 text-center">
-    <h1 class="text-danger">404</h1>
-    <p>The page you are looking for does not exist.</p>
-    <a href="<%=request.getContextPath()%>/" class="btn btn-primary">Go Home</a>
+
+<div class="flex h-screen bg-white">
+  <main class="flex flex-1 items-center justify-center px-6 py-24 sm:py-32 lg:px-8">
+    <div class="text-center max-w-md">
+      <p class="text-base font-semibold text-green-600 text-md">404</p>
+      <h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
+        Page not found
+      </h1>
+      <p class="mt-6 text-lg font-medium text-pretty text-gray-500 sm:text-xl/8">
+        Sorry, we couldn’t find the page you’re looking for.
+      </p>
+      <div class="mt-10 flex items-center justify-center gap-x-6">
+        <a
+          href="${pageContext.request.contextPath}/"
+          class="rounded-md bg-[var(--green)] px-3.5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-green-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+        >
+          Go back home
+        </a>
+        <a href="#" class="text-sm font-semibold text-gray-900">
+          Contact support <span aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </main>
+  
+    <div class="hidden lg:block lg:w-1/2 relative">
+    <p class="text-white">hi</p>
+    <img
+      src="${pageContext.request.contextPath}/images/pageNotFound.jpeg"
+      alt="Lost man in desert"
+      class="h-full w-full object-cover mt-[-25px]"
+    />
+    
+  </div>
 </div>
 
-<%@ include file="../fragment/footer.jsp" %>
 </body>
 </html>
