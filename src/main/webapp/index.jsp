@@ -8,6 +8,7 @@
 <body>
 <!-- Hero Section-->
 <%@ include file="/WEB-INF/views/fragment/navbar.jsp" %>
+<%@ include file="/WEB-INF/views/fragment/backToTop.jsp" %>
 
 <section class="relative h-[80vh] 
 				bg-[url('${pageContext.request.contextPath}/images/votingPic.png')]
