@@ -2,27 +2,12 @@
                sm:bg-white md:bg-transparent">
 
   <div class="flex-1 flex justify-between items-center">
-    <a href="#">
+    <a href="${pageContext.request.contextPath}/index.jsp">
       <img alt="Logo"
            class="cursor-pointer lg:h-[50px] lg:w-[230px] h-[45px] w-[140px]"
            src="${pageContext.request.contextPath}/images/logos/logoShort.png">
     </a>
-    
-<!-- Theme toggle button -->
-<button id="theme-toggle"
-        class="h-12 w-12 rounded-lg p-2 hover:bg-gray-100 dark:hover:bg-gray-700">
-  
-  <!-- Moon icon (light mode) -->
-  <svg id="moon-icon" class="fill-violet-700 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
-  </svg>
-  
-  <!-- Sun icon (dark mode) -->
-  <svg id="sun-icon" class="fill-yellow-500 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
-    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
-          fill-rule="evenodd" clip-rule="evenodd"></path>
-  </svg>
-</button>
+
   </div>
 
   <!-- Hamburger / Close button -->
@@ -41,7 +26,7 @@
    </path> </g></svg>
   </button>
 
-  <!-- Desktop menu (unchanged) -->
+  <!-- Desktop menu -->
   <div class="hidden md:flex md:items-center md:w-auto w-full " id="menu-desktop">
   
     <nav>
@@ -49,23 +34,23 @@
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">About us</a></li>
+                      hover:after:w-full text-black " href="#">About us</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Contact</a></li>
+                      hover:after:w-full text-black" href="${pageContext.request.contextPath}/contact.jsp">Contact</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Live results</a></li>
+                      hover:after:w-full text-black" href="#">Live results</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Login</a></li>
+                      hover:after:w-full text-black" href="login">Login</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
                       bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
                       transition-transform duration-300 hover:scale-105 
-                      hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/">Register</a></li>
+                      hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
       </ul>
 
     </nav>
@@ -83,7 +68,7 @@
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Contact</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/contact.jsp">Contact</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
@@ -93,7 +78,7 @@
                       after:bg-[var(--green)] after:transition-all after:duration-300 
                       hover:after:w-full text-[black] mb-4 text-2xl" href="#">Login</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
-                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="#">Register</a></li>
+                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="">Register</a></li>
       </ul>
     </nav>
   </div>
@@ -121,14 +106,5 @@ toggleBtn.addEventListener('click', () => {
     closeIcon.classList.remove('hidden');
   }
 });
-
-//theme toggle button
-document.addEventListener('DOMContentLoaded', () => {
-	  const toggleBtn = document.getElementById('theme-toggle');
-
-	  toggleBtn.addEventListener('click', () => {
-	    document.documentElement.classList.toggle('dark');
-	  });
-	});
 
 </script>
