@@ -5,12 +5,19 @@
 <head>
     <%@ include file="../fragment/head.jsp" %>
 </head>
-<body>
+<body class="bg-white text-gray-900">
+
 <%@ include file="../fragment/navbar.jsp" %>
 
-<div class="container mt-5 text-center">
-    <h1 class="text-danger">403 - Forbidden</h1>
-    <p>You do not have permission to access this resource.</p>
+<div class="container mt-20 text-center">
+    <h1 class="text-5xl font-extrabold mb-6 text-purple-700">403 - Forbidden</h1>
+    <p class="text-lg text-gray-600 mb-8">
+        You do not have permission to access this resource.
+    </p>
+
+        <a href="${pageContext.request.contextPath}/contact.jsp" class="text-sm font-semibold text-gray-900">
+          Contact support <span aria-hidden="true">&rarr;</span>
+        </a>
 </div>
 
 <%@ include file="../fragment/footer.jsp" %>
