@@ -6,12 +6,12 @@
     <%@ include file="../fragment/head.jsp" %>
 </head>
 <body>
-<%@ include file="../fragment/navbar.jsp" %>
+
 
 <div class="flex h-screen bg-white">
   <main class="flex flex-1 items-center justify-center px-6 py-24 sm:py-32 lg:px-8">
     <div class="text-center max-w-md">
-      <p class="text-base font-semibold text-green-600 text-md">404</p>
+      <p class="text-base font-semibold text-red-500 text-md">404</p>
       <h1 class="mt-4 text-5xl font-semibold tracking-tight text-balance text-gray-900 sm:text-7xl">
         Page not found
       </h1>
@@ -25,7 +25,7 @@
         >
           Go back home
         </a>
-        <a href="#" class="text-sm font-semibold text-gray-900">
+        <a href="${pageContext.request.contextPath}/contact.jsp" class="text-sm font-semibold text-gray-900">
           Contact support <span aria-hidden="true">&rarr;</span>
         </a>
       </div>
@@ -33,7 +33,6 @@
   </main>
   
     <div class="hidden lg:block lg:w-1/2 relative">
-    <p class="text-white">hi</p>
     <img
       src="${pageContext.request.contextPath}/images/pageNotFound.jpeg"
       alt="Lost man in desert"
