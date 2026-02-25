@@ -1,42 +1,50 @@
 package com.bascode.controller;
 
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.Base64;
+
 import com.bascode.model.entity.User;
 import com.bascode.util.EmailUtil;
+
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.util.Base64;
 
 @WebServlet("/forgot-password")
 public class ForgotPasswordServlet extends HttpServlet {
-    private EntityManagerFactory emf;
 
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("online-voting-system");
-    }
+	private static final long serialVersionUID = 1L;
+	
+	
 
-    @Override
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		req.getRequestDispatcher("/forgot_password.jsp").forward(req, resp);
+	}
+
+
+	@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
         EntityManager em = emf.createEntityManager();
+        
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
                 .setParameter("email", email)
                 .getResultStream()
                 .findFirst()
                 .orElse(null);
+            
             if (user == null) {
                 request.setAttribute("error", "No account found with that email.");
-                request.getRequestDispatcher("forgot_password.jsp").forward(request, response);
+                response.sendRedirect("/forgot-password");
                 return;
             }
             // Generate secure reset token
@@ -45,7 +53,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             random.nextBytes(tokenBytes);
             String resetToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
             em.getTransaction().begin();
-            user.setResetToken(resetToken);
+            user.setVerificationCode(resetToken);
             em.getTransaction().commit();
             // Send reset email
             try {
@@ -56,16 +64,10 @@ public class ForgotPasswordServlet extends HttpServlet {
                 return;
             }
             request.setAttribute("success", "Password reset link sent. Please check your email.");
-            request.getRequestDispatcher("forgot_password.jsp").forward(request, response);
+            request.getRequestDispatcher("/forgot_password.jsp").forward(request, response);
         } finally {
             em.close();
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
-        }
-    }
 }
