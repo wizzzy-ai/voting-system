@@ -8,7 +8,7 @@
 <body>
 
 
-<div class="flex h-screen bg-white">
+<div class="h-screen bg-white">
   <main class="flex flex-1 items-center justify-center px-6 py-24 sm:py-32 lg:px-8">
     <div class="text-center max-w-md">
       <p class="text-base font-semibold text-red-500 text-md">500</p>
@@ -33,15 +33,6 @@
     </div>
   </main>
   
-    <div class="hidden lg:block lg:w-1/2 relative">
-    <p class="text-white">hi</p>
-    <img
-      src="${pageContext.request.contextPath}/images/pageNotFound.jpeg"
-      alt="Lost man in desert"
-      class="h-full w-full object-cover mt-[-25px]"
-    />
-    
-  </div>
 </div>
 
 </body>

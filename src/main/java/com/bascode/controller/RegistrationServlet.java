@@ -89,7 +89,18 @@ public class RegistrationServlet extends HttpServlet {
             user.setBirthYear(birthYear);
             user.setState(state);
             user.setCountry(country);
-            user.setRole(Role.valueOf(roleStr));
+         
+            Role role;
+            try {
+                role = Role.valueOf(roleStr.toUpperCase()); 
+            } catch (IllegalArgumentException e) {
+                request.setAttribute("error", "Invalid role selected.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            user.setRole(role);
+
+            
             user.setEmailVerified(false);
             user.setVerificationCode(otp); // Store OTP
 

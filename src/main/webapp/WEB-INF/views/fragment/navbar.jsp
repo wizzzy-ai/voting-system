@@ -4,7 +4,7 @@
   <div class="flex-1 flex justify-between items-center">
     <a href="${pageContext.request.contextPath}/index.jsp">
       <img alt="Logo"
-           class="cursor-pointer lg:h-[50px] lg:w-[230px] h-[45px] w-[140px]"
+           class="cursor-pointer lg:h-[40px] lg:w-[210px] h-[45px] w-[140px]"
            src="${pageContext.request.contextPath}/images/logos/logoShort.png">
     </a>
 
@@ -46,7 +46,7 @@
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-black" href="login">Login</a></li>
+                      hover:after:w-full text-black" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
                       bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
                       transition-transform duration-300 hover:scale-105 
@@ -76,9 +76,9 @@
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Login</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
-                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="">Register</a></li>
+                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
       </ul>
     </nav>
   </div>
