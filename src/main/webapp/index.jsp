@@ -1,7 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page isErrorPage="true" %>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
 </head>
@@ -29,22 +28,23 @@
 	
 	<!-- CTA buttons -->
 	 <div class="mt-24 flex space-x-14 relative z-10">
-	 	<button class="block font-bold cursor-pointer
+	 
+	 	<a href="${pageContext.request.contextPath}/register.jsp" class="block font-bold cursor-pointer
            py-6 px-4 md:px-6 md:py-4 rounded-sm
            mb-2 md:mb-0
            bg-[var(--purple)] text-white
            transition-transform duration-300
            hover:scale-105 hover:y-110">
             Get Started
-         </button>
-	 	<button class="block font-bold cursor-pointer
+         </a>
+	 	<a href="#how-it-works" class="block font-bold cursor-pointer
            py-3 px-4 md:px-6 md:py-4 rounded-sm
            mb-2 md:mb-0
            bg-[var(--purple)] text-white
            transition-transform duration-300
            hover:scale-105 hover:y-110">
                		  How It Works
-         </button>
+         </a>
 	 </div>
 	 
 </section>
@@ -62,7 +62,7 @@
 
 
 <!-- steps -->
-<section class="px-6 py-12">
+<section class="px-6 py-12" id="how-it-works">
   <h2 class="text-center text-3xl md:text-4xl font-bold mb-10 text-[var(--purple)]">
     How Does It Work?
   </h2>
