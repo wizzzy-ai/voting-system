@@ -218,6 +218,7 @@
       <div class="text-5xl font-extrabold text-gray-900">24/7</div>
       <p class="mt-2 text-lg text-gray-600">Support available</p>
     </div>
+    
 
   </div>
 </section>

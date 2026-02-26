@@ -2,7 +2,7 @@
                sm:bg-white md:bg-transparent">
 
   <div class="flex-1 flex justify-between items-center">
-    <a href="#">
+    <a href="${pageContext.request.contextPath}/">
       <img alt="Logo"
            class="cursor-pointer lg:h-[50px] lg:w-[230px] h-[45px] w-[140px]"
            src="${pageContext.request.contextPath}/images/logos/logoShort.png">
@@ -49,23 +49,23 @@
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">About us</a></li>
+                      hover:after:w-full text-white" href="${pageContext.request.contextPath}/about.jsp">About us</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Contact</a></li>
+                      hover:after:w-full text-white" href="${pageContext.request.contextPath}/contact.jsp">Contact</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Live results</a></li>
+                      hover:after:w-full text-white" href="${pageContext.request.contextPath}/results.jsp">Live results</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-white" href="#">Login</a></li>
+                      hover:after:w-full text-white" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
         <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
                       bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
                       transition-transform duration-300 hover:scale-105 
-                      hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/">Register</a></li>
+                      hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
       </ul>
 
     </nav>
@@ -79,21 +79,21 @@
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">About us</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/about.jsp">About us</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Contact</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/contact.jsp">Contact</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Live Results</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/results.jsp">Live Results</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Login</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
         <li><a class="py-2 px-4 block relative inline-block 
-                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="#">Register</a></li>
+                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
       </ul>
     </nav>
   </div>
