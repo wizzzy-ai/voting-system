@@ -31,39 +31,40 @@ public class RegistrationServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String firstName = request.getParameter("firstName");
-        String lastName = request.getParameter("lastName");
-        String email = request.getParameter("email");
-        String password = request.getParameter("password");
-        String confirmPassword = request.getParameter("confirmPassword");
-        String birthYearStr = request.getParameter("birthYear");
-        String state = request.getParameter("state");
-        String country = request.getParameter("country");
-        String roleStr = request.getParameter("role");
-        String positionStr = request.getParameter("position");
-
-        // Input validation
-        if (firstName == null || lastName == null || email == null || password == null || confirmPassword == null || birthYearStr == null || state == null || country == null || roleStr == null) {
-            request.setAttribute("error", "All fields are required.");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-            return;
-        }
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error", "Passwords do not match.");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-            return;
-        }
-        int birthYear;
+        EntityManager em = null;
         try {
-            birthYear = Integer.parseInt(birthYearStr);
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Invalid birth year.");
-            request.getRequestDispatcher("register.jsp").forward(request, response);
-            return;
-        }
+            String firstName = request.getParameter("firstName");
+            String lastName = request.getParameter("lastName");
+            String email = request.getParameter("email");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String birthYearStr = request.getParameter("birthYear");
+            String state = request.getParameter("state");
+            String country = request.getParameter("country");
+            String roleStr = request.getParameter("role");
+            String positionStr = request.getParameter("position");
 
-        EntityManager em = emf.createEntityManager();
-        try {
+            // Input validation
+            if (firstName == null || lastName == null || email == null || password == null || confirmPassword == null || birthYearStr == null || state == null || country == null || roleStr == null) {
+                request.setAttribute("error", "All fields are required.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            if (!password.equals(confirmPassword)) {
+                request.setAttribute("error", "Passwords do not match.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            int birthYear;
+            try {
+                birthYear = Integer.parseInt(birthYearStr);
+            } catch (NumberFormatException e) {
+                request.setAttribute("error", "Invalid birth year.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+
+            em = emf.createEntityManager();
             // Check for duplicate email
             long count = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
                 .setParameter("email", email)
@@ -138,8 +139,16 @@ public class RegistrationServlet extends HttpServlet {
             }
             // Redirect to OTP verification page with email as parameter
             response.sendRedirect("verify-otp.jsp?email=" + java.net.URLEncoder.encode(email, "UTF-8"));
+        } catch (Exception ex) {
+            if (em != null && em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            // Forward to OTP page with error and email
+            request.setAttribute("error", "A system error occurred while processing your registration. Please try entering your OTP or contact support.");
+            request.setAttribute("email", request.getParameter("email"));
+            request.getRequestDispatcher("verify-otp.jsp").forward(request, response);
         } finally {
-            em.close();
+            if (em != null) em.close();
         }
     }
 
