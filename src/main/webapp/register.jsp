@@ -1,3 +1,5 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,8 +26,13 @@
 					your account</h2>
 
 				<form class="space-y-4" action="register" method="post">
+				
+				<!-- Error check  -->
+				<c:if test="${not empty error }">
+					<p class="mb-4 p-3 bg-red-100 text-red-700 rounded">${error}</p>
+				</c:if>
 
-					<!-- First & Last Name side by side -->
+					<!-- First & Lastname -->
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div class="relative">
 							<input type="text" id="firstName" name="firstName" required
@@ -33,7 +40,7 @@
 								class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                           focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 							<label for="firstName"
-								class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+								class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                           peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                           peer-focus:top-2 peer-focus:text-sm">
 								First Name </label>
@@ -44,7 +51,7 @@
 								class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                           focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 							<label for="lastName"
-								class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+								class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                           peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                           peer-focus:top-2 peer-focus:text-sm">
 								Last Name </label>
@@ -58,39 +65,26 @@
 							class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                         focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 						<label for="email"
-							class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+							class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                         peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                         peer-focus:top-2 peer-focus:text-sm">
 							Email </label>
 					</div>
 
-					<!-- Password -->
-					<div class="relative">
-						<input type="password" id="password" name="password" required
-							placeholder="Password"
-							class="peer w-full border-b-2 border-gray-300 placeholder-transparent
-                        focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
-						<label for="password"
-							class="absolute left-1 top-2 text-gray-500 text-sm transition-all
-                        peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
-                        peer-focus:top-2 peer-focus:text-sm">
-							Password </label>
-					</div>
-
 					<!-- Birth Year -->
 					<div class="relative">
-						<input type="number" id="birthYear" name="birthYear" required
-							min="1900" max="2026" placeholder="Birth Year"
+						<input type="date" id="birthYear" name="birthYear" required
+							min="1900" max="2026" placeholder=""
 							class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                         focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 						<label for="birthYear"
-							class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+							class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                         peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                         peer-focus:top-2 peer-focus:text-sm">
-							Birth Year </label>
+							Date Of Birth </label>
 					</div>
 
-					<!-- State & Country side by side -->
+					<!-- State & Country  -->
 					<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 						<div class="relative">
 							<input type="text" id="state" name="state" required
@@ -98,7 +92,7 @@
 								class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                           focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 							<label for="state"
-								class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+								class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                           peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                           peer-focus:top-2 peer-focus:text-sm">
 								State </label>
@@ -109,12 +103,40 @@
 								class="peer w-full border-b-2 border-gray-300 placeholder-transparent
                           focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
 							<label for="country"
-								class="absolute left-1 top-2 text-gray-500 text-sm transition-all
+								class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                           peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                           peer-focus:top-2 peer-focus:text-sm">
 								Country </label>
 						</div>
 					</div>
+
+					<!-- Password -->
+					<div class="relative">
+						<input type="password" id="password" name="password" required
+							placeholder="Password"
+							class="peer w-full border-b-2 border-gray-300 placeholder-transparent
+                        focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
+						<label for="password"
+							class="absolute left-1 top-0 text-gray-500 text-sm transition-all
+                        peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
+                        peer-focus:top-2 peer-focus:text-sm">
+							Password </label>
+					</div>
+
+					<!-- Confirm Password -->
+					<div class="relative">
+						<input type="password" id="confirmPassword" name="confirmPassword"
+							required placeholder="Confirm Password"
+							class="peer w-full border-b-2 border-gray-300 placeholder-transparent
+           focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
+						<label for="confirmPassword"
+							class="absolute left-1 top-0 text-gray-500 text-sm transition-all
+           peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
+           peer-focus:top-2 peer-focus:text-sm">
+							Confirm Password </label>
+					</div>
+
+
 
 					<!-- Role -->
 					<div class="relative">

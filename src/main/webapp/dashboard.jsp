@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
-<%@ include file="/WEB-INF/views/fragment/navbar.jsp" %>
+
 <html lang="en">
 <head>
     <title>Dashboard - Voting System</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/tailwind.output.css">
 </head>
 <body class="bg-gray-100 min-h-screen">
 <%-- Session validation --%>

@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 @WebServlet("/verify-otp")
 public class VerifyOtpServlet extends HttpServlet {
     private EntityManagerFactory emf;
@@ -21,32 +20,39 @@ public class VerifyOtpServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String email = request.getParameter("email"); // You may need to pass email via session or hidden field
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String email = request.getParameter("email");
         String otp = request.getParameter("otp");
+
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
-                .setParameter("email", email)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+                          .setParameter("email", email)
+                          .getResultStream()
+                          .findFirst()
+                          .orElse(null);
+
             if (user == null) {
                 request.setAttribute("error", "User not found.");
                 request.getRequestDispatcher("verify-otp.jsp").forward(request, response);
                 return;
             }
-            if (!user.getVerificationCode().equals(otp)) {
+
+            if (!otp.equals(user.getVerificationCode())) {
                 request.setAttribute("error", "Invalid OTP code.");
                 request.getRequestDispatcher("verify-otp.jsp").forward(request, response);
                 return;
             }
+
             em.getTransaction().begin();
             user.setEmailVerified(true);
-            user.setVerificationCode(null); // Clear OTP
+            user.setVerificationCode(null); // clear OTP
             em.getTransaction().commit();
-            request.setAttribute("success", "Email verified successfully! You can now log in.");
-            request.getRequestDispatcher("verify-otp.jsp").forward(request, response);
+
+            // Redirect to login page with success notification
+            response.sendRedirect("login.jsp?success=1");
+
         } finally {
             em.close();
         }
