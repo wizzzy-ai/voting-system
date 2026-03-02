@@ -26,7 +26,7 @@
                     <label for="otp" class="mb-2 block text-sm font-medium text-gray-700">OTP Code</label>
                     <input type="text" id="otp" name="otp" maxlength="6" minlength="6" pattern="[0-9]{6}" class="w-full border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-transparent focus:ring-2 focus:ring-black focus:outline-none" placeholder="Enter 6-digit OTP code" required />
                 </div>
-                <button type="submit" class="w-full bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800">Verify</button>
+                <button type="submit" class=" cursor-pointer w-full bg-black px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-gray-800">Verify</button>
             </form>
         </div>
     </section>

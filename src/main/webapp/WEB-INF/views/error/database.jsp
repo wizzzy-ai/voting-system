@@ -22,7 +22,7 @@
          class="inline-block bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
         Back to Home
       </a>
-      <a href="mailto:support@mysite.com"
+      <a href="${pageContext.request.contextPath}/contact.jsp"
          class="inline-block bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
         Contact Support
       </a>

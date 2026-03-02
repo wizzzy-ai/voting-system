@@ -17,6 +17,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Base64;
 import org.mindrot.jbcrypt.BCrypt;
 
@@ -57,9 +59,10 @@ public class RegistrationServlet extends HttpServlet {
             }
             int birthYear;
             try {
-                birthYear = Integer.parseInt(birthYearStr);
-            } catch (NumberFormatException e) {
-                request.setAttribute("error", "Invalid birth year.");
+            		LocalDate birthDate = LocalDate.parse(birthYearStr);
+            		birthYear = birthDate.getYear();          
+            } catch (DateTimeParseException e) {
+                request.setAttribute("error", "Invalid birth date.");
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
