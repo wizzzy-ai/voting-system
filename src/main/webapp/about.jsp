@@ -19,7 +19,7 @@
                 Redefining Democracy for the Digital Age
             </h1>
             <p class="text-lg md:text-xl text-purple-100 max-w-2xl mx-auto leading-relaxed">
-                SecureVote is a next-generation platform designed to make voting accessible, transparent, and unhackable. We bridge the gap between technology and civic duty.
+                WeVote is a next-generation platform designed to make voting accessible, transparent, and unhackable. We bridge the gap between technology and civic duty.
             </p>
         </div>
     </header>
@@ -81,7 +81,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3">Foundation</h3>
                     <p class="text-slate-600">
-                        SecureVote was founded with a mission to modernize democratic participation 
+                        WeVote was founded with a mission to modernize democratic participation 
                         through secure digital infrastructure.
                     </p>
                 </div>
@@ -109,7 +109,7 @@
                     </div>
                     <h3 class="text-xl font-bold mb-3">Global Reach</h3>
                     <p class="text-slate-600">
-                        SecureVote expanded internationally, supporting institutions 
+                        WeVote expanded internationally, supporting institutions 
                         and organizations seeking transparent and tamper-proof elections.
                     </p>
                 </div>
