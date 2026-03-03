@@ -139,13 +139,14 @@
 
 
 					<!-- Role -->
-					<div class="relative">
-						<select name="role" required>
-							<option value="VOTER">Voter</option>
-							<option value="CONTESTER">Contester</option>
-							<option value="ADMIN">Admin</option>
-						</select>
-					</div>
+						<div class="relative">
+							<label for="role" class="block text-gray-600 mb-1">Account type</label>
+							<select id="role" name="role" class="w-full border-b-2 border-gray-300 py-2 px-1" required>
+								<option value="VOTER" selected>Voter</option>
+								<option value="ADMIN">Admin</option>
+							</select>
+							<p class="text-sm text-gray-600 mt-1">Admin sign-up is only allowed for initial system setup.</p>
+						</div>
 					
 					<p class="text-sm text-black">I accept the <a href="${pageContext.request.contextPath}/legal.jsp" class="text-underline text-blue-500">Terms & Conditions</a></p>
 					<!-- Submit Button -->

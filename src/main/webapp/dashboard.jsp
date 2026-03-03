@@ -22,6 +22,12 @@
         response.sendRedirect("login.jsp");
         return;
     }
+
+    String userRole = (String) session.getAttribute("userRole");
+    if ("ADMIN".equals(userRole)) {
+        response.sendRedirect("admin.jsp");
+        return;
+    }
 %>
     <section class="max-w-4xl mx-auto mt-10">
         <div class="bg-white rounded shadow p-8">

@@ -13,8 +13,17 @@ public class JPAInitializer implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        emf = Persistence.createEntityManagerFactory("VotingPU");
-        sce.getServletContext().setAttribute("emf", emf);
+        try {
+            emf = Persistence.createEntityManagerFactory("VotingPU");
+            sce.getServletContext().setAttribute("emf", emf);
+        } catch (Throwable t) {
+            // Log the error and avoid throwing so the webapp still starts
+            System.err.println("Failed to initialize EntityManagerFactory: " + t.getMessage());
+            t.printStackTrace();
+            sce.getServletContext().setAttribute("emf", null);
+            // Also store the error message for diagnostics
+            sce.getServletContext().setAttribute("emfError", t.toString());
+        }
     }
 
     @Override
