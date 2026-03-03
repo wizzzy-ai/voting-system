@@ -18,7 +18,7 @@ public class ResetPasswordServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("online-voting-system");
+        emf = Persistence.createEntityManagerFactory("VotingPU");
     }
 
     @Override
