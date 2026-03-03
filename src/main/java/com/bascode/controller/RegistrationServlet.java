@@ -19,7 +19,11 @@ import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet("/register")
 public class RegistrationServlet extends HttpServlet {
-    private EntityManagerFactory emf;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private EntityManagerFactory emf;
 
     @Override
     public void init() throws ServletException {
@@ -43,12 +47,12 @@ public class RegistrationServlet extends HttpServlet {
             // Input validation
             if (firstName == null || lastName == null || email == null || password == null || confirmPassword == null || birthYearStr == null || state == null || country == null || roleStr == null) {
                 request.setAttribute("error", "All fields are required.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
             if (!password.equals(confirmPassword)) {
                 request.setAttribute("error", "Passwords do not match.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
             int birthYear;
@@ -57,7 +61,7 @@ public class RegistrationServlet extends HttpServlet {
             		birthYear = birthDate.getYear();          
             } catch (DateTimeParseException e) {
                 request.setAttribute("error", "Invalid birth date.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
 
@@ -68,7 +72,7 @@ public class RegistrationServlet extends HttpServlet {
                 .getSingleResult();
             if (count > 0) {
                 request.setAttribute("error", "Email already registered.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
 
@@ -93,13 +97,13 @@ public class RegistrationServlet extends HttpServlet {
                 role = Role.valueOf(roleStr.toUpperCase()); 
             } catch (IllegalArgumentException e) {
                 request.setAttribute("error", "Invalid role selected.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
 
             if (role == Role.CONTESTER) {
                 request.setAttribute("error", "Contestant accounts are created by an admin.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
             if (role == Role.ADMIN) {
@@ -109,7 +113,7 @@ public class RegistrationServlet extends HttpServlet {
                     .getSingleResult();
                 if (adminCount > 0) {
                     request.setAttribute("error", "Admin self-registration is disabled after initial setup.");
-                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                    request.getRequestDispatcher("/register.jsp").forward(request, response);
                     return;
                 }
             }
@@ -128,7 +132,7 @@ public class RegistrationServlet extends HttpServlet {
                 EmailUtil.sendVerificationEmail(email, otp);
             } catch (MessagingException e) {
                 request.setAttribute("error", "Registration succeeded, but failed to send OTP email.");
-                request.getRequestDispatcher("register.jsp").forward(request, response);
+                request.getRequestDispatcher("/register.jsp").forward(request, response);
                 return;
             }
             // Redirect to OTP verification page with email as parameter

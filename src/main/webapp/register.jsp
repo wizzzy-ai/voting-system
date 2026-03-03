@@ -25,7 +25,7 @@
 				<h2 class="text-2xl font-extrabold text-gray-800 mb-8">Create
 					your account</h2>
 
-				<form class="space-y-4" action="register" method="post">
+				<form class="space-y-4" action="${pageContext.request.contextPath}/register" method="post">
 				
 				<!-- Error check  -->
 				<c:if test="${not empty error }">
