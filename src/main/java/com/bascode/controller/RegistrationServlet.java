@@ -1,10 +1,7 @@
 package com.bascode.controller;
 
 import com.bascode.model.entity.User;
-import com.bascode.model.entity.Contester;
 import com.bascode.model.enums.Role;
-import com.bascode.model.enums.Position;
-import com.bascode.model.enums.ContesterStatus;
 import com.bascode.util.EmailUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
@@ -16,10 +13,8 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.Base64;
 import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet("/register")
@@ -44,7 +39,6 @@ public class RegistrationServlet extends HttpServlet {
             String state = request.getParameter("state");
             String country = request.getParameter("country");
             String roleStr = request.getParameter("role");
-            String positionStr = request.getParameter("position");
 
             // Input validation
             if (firstName == null || lastName == null || email == null || password == null || confirmPassword == null || birthYearStr == null || state == null || country == null || roleStr == null) {
@@ -102,6 +96,23 @@ public class RegistrationServlet extends HttpServlet {
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
+
+            if (role == Role.CONTESTER) {
+                request.setAttribute("error", "Contestant accounts are created by an admin.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
+            if (role == Role.ADMIN) {
+                long adminCount = em.createQuery(
+                    "SELECT COUNT(u) FROM User u WHERE u.role = :role", Long.class)
+                    .setParameter("role", Role.ADMIN)
+                    .getSingleResult();
+                if (adminCount > 0) {
+                    request.setAttribute("error", "Admin self-registration is disabled after initial setup.");
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                    return;
+                }
+            }
             user.setRole(role);
 
             
@@ -110,26 +121,6 @@ public class RegistrationServlet extends HttpServlet {
 
             em.getTransaction().begin();
             em.persist(user);
-
-            // If Contester, create Contester entity
-            if (roleStr.equals("CONTESTER") && positionStr != null && !positionStr.isEmpty()) {
-                // Check max 3 contesters per position
-                long contesterCount = em.createQuery("SELECT COUNT(c) FROM Contester c WHERE c.position = :position AND c.status = :status", Long.class)
-                    .setParameter("position", Position.valueOf(positionStr))
-                    .setParameter("status", ContesterStatus.APPROVED)
-                    .getSingleResult();
-                if (contesterCount >= 3) {
-                    em.getTransaction().rollback();
-                    request.setAttribute("error", "Maximum contesters for this position reached.");
-                    request.getRequestDispatcher("register.jsp").forward(request, response);
-                    return;
-                }
-                Contester contester = new Contester();
-                contester.setUser(user);
-                contester.setPosition(Position.valueOf(positionStr));
-                contester.setStatus(ContesterStatus.PENDING);
-                em.persist(contester);
-            }
             em.getTransaction().commit();
 
             // Send OTP email
