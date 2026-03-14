@@ -15,6 +15,28 @@
       Please contact the administrator.
     </p>
 
+    <%
+      boolean debug = "1".equals(request.getParameter("debug"));
+      String role = session != null ? (String) session.getAttribute("userRole") : null;
+      boolean isAdmin = role != null && "ADMIN".equalsIgnoreCase(role);
+      if (debug && isAdmin && exception != null) {
+    %>
+      <div class="max-w-4xl mx-auto mt-10 text-left">
+        <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-900 overflow-x-auto">
+          <div class="font-bold mb-2">Debug (admin only)</div>
+          <div class="font-mono text-xs whitespace-pre-wrap"><%= exception.toString() %></div>
+          <%
+            java.io.StringWriter sw = new java.io.StringWriter();
+            java.io.PrintWriter pw = new java.io.PrintWriter(sw);
+            exception.printStackTrace(pw);
+            pw.flush();
+          %>
+          <div class="font-mono text-xs whitespace-pre-wrap mt-3"><%= sw.toString() %></div>
+        </div>
+      </div>
+    <%
+      }
+    %>
 
     <!-- Action buttons -->
     <div class="space-x-4">

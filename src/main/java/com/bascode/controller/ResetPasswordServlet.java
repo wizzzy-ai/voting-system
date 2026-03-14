@@ -4,7 +4,6 @@ import com.bascode.model.entity.User;
 import org.mindrot.jbcrypt.BCrypt;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,11 +13,9 @@ import java.io.IOException;
 
 @WebServlet("/reset-password")
 public class ResetPasswordServlet extends HttpServlet {
-    private EntityManagerFactory emf;
-
     @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("online-voting-system");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
     }
 
     @Override
@@ -29,21 +26,22 @@ public class ResetPasswordServlet extends HttpServlet {
         // Input sanitization: trim and check length
         if (token == null || password == null || confirmPassword == null) {
             request.setAttribute("error", "All fields are required.");
-            request.getRequestDispatcher("reset_password.jsp?token=" + token).forward(request, response);
+            request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
             return;
         }
         password = password.trim();
         confirmPassword = confirmPassword.trim();
         if (password.length() < 8) {
             request.setAttribute("error", "Password must be at least 8 characters.");
-            request.getRequestDispatcher("reset_password.jsp?token=" + token).forward(request, response);
+            request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
             return;
         }
         if (!password.equals(confirmPassword)) {
             request.setAttribute("error", "Passwords do not match.");
-            request.getRequestDispatcher("reset_password.jsp?token=" + token).forward(request, response);
+            request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
             return;
         }
+        EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.resetToken = :token", User.class)
@@ -53,13 +51,13 @@ public class ResetPasswordServlet extends HttpServlet {
                 .orElse(null);
             if (user == null) {
                 request.setAttribute("error", "Invalid or expired reset token.");
-                request.getRequestDispatcher("reset_password.jsp").forward(request, response);
+                request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
                 return;
             }
             // Prevent password reuse
             if (BCrypt.checkpw(password, user.getPasswordHash())) {
                 request.setAttribute("error", "New password must be different from the old password.");
-                request.getRequestDispatcher("reset_password.jsp?token=" + token).forward(request, response);
+                request.getRequestDispatcher("/reset_password.jsp").forward(request, response);
                 return;
             }
             String passwordHash = BCrypt.hashpw(password, BCrypt.gensalt());
@@ -74,10 +72,11 @@ public class ResetPasswordServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }

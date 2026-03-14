@@ -4,7 +4,6 @@ import com.bascode.model.entity.User;
 import org.mindrot.jbcrypt.BCrypt;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -15,17 +14,11 @@ import java.io.IOException;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
-    private EntityManagerFactory emf;
-
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("VotingPU");
-    }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
         String password = request.getParameter("password");
+        EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
@@ -52,7 +45,9 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("userId", user.getId());
             session.setAttribute("userRole", user.getRole().name());
             session.setAttribute("userEmail", user.getEmail());
-            response.sendRedirect("dashboard.jsp"); // Change to your dashboard page
+            // Some pages/servlets still expect a "user" session attribute.
+            session.setAttribute("user", user);
+            response.sendRedirect(request.getContextPath() + "/dashboard");
         } catch (Exception ex) {
             ex.printStackTrace(); // Log the full stack trace to server logs
             request.setAttribute("error", "A system error occurred: " + ex.getMessage());
@@ -67,10 +62,11 @@ public class LoginServlet extends HttpServlet {
         request.getRequestDispatcher("login.jsp").forward(request, response);
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }

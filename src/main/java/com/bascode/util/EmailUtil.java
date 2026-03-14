@@ -40,4 +40,37 @@ public class EmailUtil {
 
         Transport.send(message);
     }
+
+    public static void sendPasswordResetEmail(String to, String resetLink) throws MessagingException {
+        String host = "smtp.gmail.com";
+        String from = "chisomwork17@email.com";
+        final String username = "chisomwork17";
+        final String password = "jyfsxbpbqkyfofhi";
+
+        String subject = "Password Reset Link";
+        String content = "You requested a password reset.\n\n" +
+                "Reset your password using this link:\n" +
+                resetLink + "\n\n" +
+                "If you did not request this, you can ignore this email.";
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(username, password);
+            }
+        });
+
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(from));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
+        message.setSubject(subject);
+        message.setText(content);
+
+        Transport.send(message);
+    }
 }

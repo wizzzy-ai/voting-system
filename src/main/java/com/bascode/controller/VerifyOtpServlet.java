@@ -3,7 +3,6 @@ package com.bascode.controller;
 import com.bascode.model.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -12,19 +11,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 @WebServlet("/verify-otp")
 public class VerifyOtpServlet extends HttpServlet {
-    private EntityManagerFactory emf;
-
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("VotingPU");
-    }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String email = request.getParameter("email");
         String otp = request.getParameter("otp");
 
+        EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
@@ -58,10 +51,11 @@ public class VerifyOtpServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }

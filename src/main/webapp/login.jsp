@@ -47,17 +47,32 @@
         <div class="relative">
           <input type="password" id="password" name="password" required placeholder="Password"
                  class="peer w-full border-b-2 border-gray-300 placeholder-transparent
-                        focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
+                        focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1 pr-10" />
           <label for="password"
                  class="absolute left-1 top-0 text-gray-500 text-sm transition-all
                         peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
                         peer-focus:top-2 peer-focus:text-sm">
             Password
           </label>
+          <button type="button"
+                  class="absolute right-1 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-800 transition"
+                  aria-label="Show or hide password"
+                  data-password-toggle data-target="password">
+            <svg data-icon="show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5 hidden" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg data-icon="hide" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.7 10.7a3 3 0 0 0 4.24 4.24"/>
+              <path d="M9.88 5.09A10.94 10.94 0 0 1 12 5c6.5 0 10 7 10 7a18.3 18.3 0 0 1-2.32 3.19"/>
+              <path d="M6.61 6.61A16.8 16.8 0 0 0 2 12s3.5 7 10 7a10.6 10.6 0 0 0 4.12-.82"/>
+              <line x1="2" y1="2" x2="22" y2="22"/>
+            </svg>
+          </button>
         </div>
 
         <!-- Options -->
-        <a href="${pageContext.request.contextPath}/forgot-password.jsp"
+        <a href="${pageContext.request.contextPath}/forgot-password"
            class="text-blue-600 hover:underline">Forgot password?</a>
 
         <!-- Submit Button -->

@@ -1,6 +1,8 @@
 package com.bascode.controller;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -25,14 +27,20 @@ public class ForgotPasswordServlet extends HttpServlet {
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		req.getRequestDispatcher("/forgot_password.jsp").forward(req, resp);
+		req.getRequestDispatcher("/forgot-password.jsp").forward(req, resp);
 	}
 
 
 	@Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String email = request.getParameter("email");
-        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (email == null || email.trim().isEmpty()) {
+            request.setAttribute("error", "Email is required.");
+            request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         
         try {
@@ -42,9 +50,11 @@ public class ForgotPasswordServlet extends HttpServlet {
                 .findFirst()
                 .orElse(null);
             
+            // Prevent account enumeration: always respond with the same success message.
+            String genericSuccess = "If an account exists for that email, a password reset link has been sent.";
             if (user == null) {
-                request.setAttribute("error", "No account found with that email.");
-                response.sendRedirect("/forgot-password");
+                request.setAttribute("success", genericSuccess);
+                request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
                 return;
             }
             // Generate secure reset token
@@ -53,21 +63,41 @@ public class ForgotPasswordServlet extends HttpServlet {
             random.nextBytes(tokenBytes);
             String resetToken = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
             em.getTransaction().begin();
-            user.setVerificationCode(resetToken);
+            // Store reset tokens in the dedicated field to avoid clobbering email verification OTPs.
+            user.setResetToken(resetToken);
             em.getTransaction().commit();
             // Send reset email
             try {
-                EmailUtil.sendVerificationEmail(email, resetToken); // Reuse email util, update content if needed
+                String baseUrl = buildBaseUrl(request);
+                String resetLink = baseUrl + "/reset-password?token=" + URLEncoder.encode(resetToken, StandardCharsets.UTF_8);
+                EmailUtil.sendPasswordResetEmail(email, resetLink);
             } catch (MessagingException e) {
-                request.setAttribute("error", "Failed to send reset email.");
-                request.getRequestDispatcher("forgot_password.jsp").forward(request, response);
-                return;
+                // Don't reveal delivery failures to the requester.
             }
-            request.setAttribute("success", "Password reset link sent. Please check your email.");
-            request.getRequestDispatcher("/forgot_password.jsp").forward(request, response);
+            request.setAttribute("success", genericSuccess);
+            request.getRequestDispatcher("/forgot-password.jsp").forward(request, response);
         } finally {
             em.close();
         }
     }
 
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
+        }
+        return emf;
+    }
+
+    private static String buildBaseUrl(HttpServletRequest request) {
+        String scheme = request.getScheme();
+        String host = request.getServerName();
+        int port = request.getServerPort();
+        String ctx = request.getContextPath();
+
+        boolean defaultPort = ("http".equalsIgnoreCase(scheme) && port == 80) ||
+                ("https".equalsIgnoreCase(scheme) && port == 443);
+        String portPart = defaultPort ? "" : (":" + port);
+        return scheme + "://" + host + portPart + ctx;
+    }
 }

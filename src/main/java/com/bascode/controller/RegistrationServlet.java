@@ -9,7 +9,6 @@ import com.bascode.util.EmailUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -24,13 +23,6 @@ import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet("/register")
 public class RegistrationServlet extends HttpServlet {
-    private EntityManagerFactory emf;
-
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("VotingPU");
-    }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         EntityManager em = null;
@@ -67,6 +59,7 @@ public class RegistrationServlet extends HttpServlet {
                 return;
             }
 
+            EntityManagerFactory emf = getEmf();
             em = emf.createEntityManager();
             // Check for duplicate email
             long count = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
@@ -104,6 +97,21 @@ public class RegistrationServlet extends HttpServlet {
             }
             user.setRole(role);
 
+            if (role == Role.CONTESTER) {
+                if (positionStr == null || positionStr.trim().isEmpty()) {
+                    request.setAttribute("error", "Please select a position to contest for.");
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                    return;
+                }
+                try {
+                    Position.valueOf(positionStr.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    request.setAttribute("error", "Invalid position selected.");
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                    return;
+                }
+            }
+
             
             user.setEmailVerified(false);
             user.setVerificationCode(otp); // Store OTP
@@ -111,23 +119,22 @@ public class RegistrationServlet extends HttpServlet {
             em.getTransaction().begin();
             em.persist(user);
 
-            // If Contester, create Contester entity
-            if (roleStr.equals("CONTESTER") && positionStr != null && !positionStr.isEmpty()) {
-                // Check max 3 contesters per position
-                long contesterCount = em.createQuery("SELECT COUNT(c) FROM Contester c WHERE c.position = :position AND c.status = :status", Long.class)
-                    .setParameter("position", Position.valueOf(positionStr))
-                    .setParameter("status", ContesterStatus.APPROVED)
-                    .getSingleResult();
-                if (contesterCount >= 3) {
-                    em.getTransaction().rollback();
-                    request.setAttribute("error", "Maximum contesters for this position reached.");
-                    request.getRequestDispatcher("register.jsp").forward(request, response);
-                    return;
-                }
+            // If Contester, create Contester entity (PENDING) or auto-decline if position is full.
+            if (role == Role.CONTESTER) {
+                Position position = Position.valueOf(positionStr.toUpperCase());
+
+                long approvedCount = em.createQuery(
+                                "SELECT COUNT(c) FROM Contester c WHERE c.position = :position AND c.status = :status",
+                                Long.class
+                        )
+                        .setParameter("position", position)
+                        .setParameter("status", ContesterStatus.APPROVED)
+                        .getSingleResult();
+
                 Contester contester = new Contester();
                 contester.setUser(user);
-                contester.setPosition(Position.valueOf(positionStr));
-                contester.setStatus(ContesterStatus.PENDING);
+                contester.setPosition(position);
+                contester.setStatus(approvedCount >= 3 ? ContesterStatus.DENIED : ContesterStatus.PENDING);
                 em.persist(contester);
             }
             em.getTransaction().commit();
@@ -155,10 +162,11 @@ public class RegistrationServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }

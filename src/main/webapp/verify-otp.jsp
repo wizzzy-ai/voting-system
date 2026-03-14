@@ -5,7 +5,6 @@
 <html lang="en">
 <head>
     <title>Verify OTP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/tailwind.output.css">
 </head>
 <body class="flex min-h-screen items-center justify-center bg-[#f9f9f9] p-4">
     <section class="w-full max-w-md">
