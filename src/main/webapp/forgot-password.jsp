@@ -1,79 +1,58 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page language="java" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
+  <title>Forgot Password</title>
 </head>
 <body class="bg-gray-100">
-<main id="content" role="main" class="w-full max-w-md mx-auto p-6">
-    <div class="mt-7 bg-white rounded-xl shadow-lg dark:bg-gray-800 dark:border-gray-700 border-2 border-indigo-300">
-      <div class="p-4 sm:p-7">
-        <div class="text-center">
-          <h1 class="block text-2xl font-bold text-gray-800 dark:text-white">Forgot password?</h1>
-          <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Remember your password?
-            <a class="text-blue-600 decoration-2 hover:underline font-medium" href="${pageContext.request.contextPath}/login.jsp">
-              Login here
-            </a>
-          </p>
-        </div>
+  <%@ include file="/WEB-INF/views/fragment/backToHome.jsp" %>
 
-        <div class="mt-5">
-          <form action="forgot-password" method="post">
-            <div class="grid gap-y-4">
-              <div>
-                <label for="email" class="block text-sm font-bold ml-1 mb-2 dark:text-white">Email address</label>
-                <div class="relative">
-                  <input type="email" id="email" name="email" value="${param.email}" class="py-3 px-4 block w-full border-2 border-gray-200 rounded-md text-sm focus:border-blue-500 focus:ring-blue-500 shadow-sm" required aria-describedby="email-error">
-                </div>
-                <p class="hidden text-xs text-red-600 mt-2" id="email-error">Please include a valid email address so we can get back to you</p>
-              </div>
-              <button type="submit" class="py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md border border-transparent font-semibold bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm dark:focus:ring-offset-gray-800">Reset password</button>
-            </div>
-          </form>
-        </div>
+  <div class="flex items-center justify-center px-4 min-h-screen bg-gray-100 mt-6">
+    <div class="w-full max-w-4xl bg-white shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row">
+      <div class="md:w-1/2">
+        <img alt="forgot password image" src="${pageContext.request.contextPath}/images/login.jpeg"
+             class="w-full h-full object-cover hidden md:block">
+      </div>
 
-        <!-- server messages inside the card -->
+      <div class="md:w-1/2 p-10 sm:p-16 flex flex-col justify-center bg-white">
+        <h2 class="text-2xl font-extrabold text-gray-800 mb-3">Forgot your password?</h2>
+        <p class="text-sm text-gray-600 mb-8">Enter your email and we will send you a reset link.</p>
+
         <c:if test="${not empty error}">
-          <div class="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            ${error}
-          </div>
+          <p class="mb-4 p-3 bg-red-100 text-red-700 rounded">${error}</p>
         </c:if>
         <c:if test="${not empty success}">
-          <div class="mt-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded">
-            ${success}
-          </div>
+          <p class="mb-4 p-3 bg-green-100 text-green-700 rounded">${success}</p>
         </c:if>
 
-        <!-- debug reset link (development only) -->
-        <c:if test="${not empty debugResetLink}">
-          <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 text-yellow-800 rounded">
-            <strong>Development reset link (copy and paste in browser):</strong>
-            <div class="break-words mt-2"><a class="text-blue-600 hover:underline" href="${debugResetLink}">${debugResetLink}</a></div>
+        <form class="space-y-4" action="${pageContext.request.contextPath}/forgot-password" method="post">
+          <div class="relative">
+            <input type="email" id="email" name="email" required placeholder="Email address"
+                   class="peer w-full border-b-2 border-gray-300 placeholder-transparent
+                          focus:outline-none focus:border-blue-500 text-gray-900 py-3 px-1" />
+            <label for="email"
+                   class="absolute left-1 top-0 text-gray-500 text-sm transition-all
+                          peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-base
+                          peer-focus:top-2 peer-focus:text-sm">
+              Email address
+            </label>
           </div>
-        </c:if>
 
-        <!-- show server-side last error for quick debugging -->
-        <c:if test="${not empty applicationScope.lastForgotError}">
-          <div class="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded">
-            <strong>Last server error:</strong>
-            <pre class="whitespace-pre-wrap mt-2">${applicationScope.lastForgotError}</pre>
-          </div>
-        </c:if>
+          <button type="submit"
+                  class="cursor-pointer w-full bg-[var(--green)] hover:bg-green-700 text-white py-3 rounded-xl font-semibold transition duration-300 shadow-lg mt-2">
+            Send Reset Link
+          </button>
+        </form>
 
+        <p class="text-center text-sm text-gray-600 mt-6">
+          Remembered your password?
+          <a href="${pageContext.request.contextPath}/login.jsp" class="text-blue-600 hover:underline">Back to login</a>
+        </p>
       </div>
     </div>
-
-    <p class="mt-3 flex justify-center items-center text-center divide-x divide-gray-300 dark:divide-gray-700">
-      <a class="pr-3.5 inline-flex items-center gap-x-2 text-sm text-gray-600 decoration-2 hover:underline hover:text-blue-600 dark:text-gray-500 dark:hover:text-gray-200" href="#" target="_blank">
-        View Github
-      </a>
-      <a class="pl-3 inline-flex items-center gap-x-2 text-sm text-gray-600 decoration-2 hover:underline hover:text-blue-600 dark:text-gray-500 dark:hover:text-gray-200" href="#">
-        Contact us!
-      </a>
-    </p>
-  </main>
-
+  </div>
 </body>
 </html>
+

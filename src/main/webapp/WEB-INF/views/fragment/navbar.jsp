@@ -30,6 +30,10 @@
   <div class="hidden md:flex md:items-center md:w-auto w-full " id="menu-desktop">
   
     <nav>
+      <%
+        boolean loggedIn = session != null && session.getAttribute("userId") != null;
+        String role = loggedIn ? String.valueOf(session.getAttribute("userRole")) : null;
+      %>
       <ul class="md:flex items-center justify-between text-base text-gray-700 pt-4 md:pt-0">
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
@@ -42,15 +46,36 @@
         <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-black" href="#">Live results</a></li>
-        <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
-                      after:content-[''] after:block after:w-0 after:h-[2px] 
-                      after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-black" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
-        <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
-                      bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
-                      transition-transform duration-300 hover:scale-105 
-                      hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
+                      hover:after:w-full text-black" href="${pageContext.request.contextPath}/results">Live results</a></li>
+        <% if (loggedIn) { %>
+          <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-black" href="${pageContext.request.contextPath}/dashboard">Dashboard</a></li>
+          <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-black" href="${pageContext.request.contextPath}/profile">Profile</a></li>
+          <% if ("ADMIN".equalsIgnoreCase(role)) { %>
+            <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
+                          after:content-[''] after:block after:w-0 after:h-[2px] 
+                          after:bg-[var(--green)] after:transition-all after:duration-300 
+                          hover:after:w-full text-black" href="${pageContext.request.contextPath}/admin/dashboard">Admin</a></li>
+          <% } %>
+          <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
+                        bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
+                        transition-transform duration-300 hover:scale-105 
+                        hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/logout">Logout</a></li>
+        <% } else { %>
+          <li><a class="md:p-4 py-3 px-0 block font-bold relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-black" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
+          <li><a class="md:p-4 py-3 px-0 block font-bold rounded-sm 
+                        bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white 
+                        transition-transform duration-300 hover:scale-105 
+                        hover:bg-gradient-to-r hover:from-[var(--purple)] hover:to-[var(--purple-light)]" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
+        <% } %>
       </ul>
 
     </nav>
@@ -72,13 +97,32 @@
         <li><a class="py-2 px-4 block relative inline-block 
                       after:content-[''] after:block after:w-0 after:h-[2px] 
                       after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="#">Live Results</a></li>
-        <li><a class="py-2 px-4 block relative inline-block 
-                      after:content-[''] after:block after:w-0 after:h-[2px] 
-                      after:bg-[var(--green)] after:transition-all after:duration-300 
-                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
-        <li><a class="py-2 px-4 block relative inline-block 
-                      text-[black] mb-4 text-2xl border border-groove rounded-sm" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
+                      hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/results">Live Results</a></li>
+        <% if (loggedIn) { %>
+          <li><a class="py-2 px-4 block relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/dashboard">Dashboard</a></li>
+          <li><a class="py-2 px-4 block relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/profile">Profile</a></li>
+          <% if ("ADMIN".equalsIgnoreCase(role)) { %>
+            <li><a class="py-2 px-4 block relative inline-block 
+                          after:content-[''] after:block after:w-0 after:h-[2px] 
+                          after:bg-[var(--green)] after:transition-all after:duration-300 
+                          hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/admin/dashboard">Admin</a></li>
+          <% } %>
+          <li><a class="py-2 px-4 block relative inline-block 
+                        text-[black] mb-4 text-2xl border border-groove rounded-sm" href="${pageContext.request.contextPath}/logout">Logout</a></li>
+        <% } else { %>
+          <li><a class="py-2 px-4 block relative inline-block 
+                        after:content-[''] after:block after:w-0 after:h-[2px] 
+                        after:bg-[var(--green)] after:transition-all after:duration-300 
+                        hover:after:w-full text-[black] mb-4 text-2xl" href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
+          <li><a class="py-2 px-4 block relative inline-block 
+                        text-[black] mb-4 text-2xl border border-groove rounded-sm" href="${pageContext.request.contextPath}/register.jsp">Register</a></li>
+        <% } %>
       </ul>
     </nav>
   </div>

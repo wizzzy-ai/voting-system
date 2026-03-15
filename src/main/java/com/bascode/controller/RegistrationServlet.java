@@ -1,35 +1,28 @@
 package com.bascode.controller;
 
 import com.bascode.model.entity.User;
+import com.bascode.model.entity.Contester;
 import com.bascode.model.enums.Role;
+import com.bascode.model.enums.Position;
+import com.bascode.model.enums.ContesterStatus;
 import com.bascode.util.EmailUtil;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import org.mindrot.jbcrypt.BCrypt;
 
 @WebServlet("/register")
 public class RegistrationServlet extends HttpServlet {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private EntityManagerFactory emf;
-
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("VotingPU");
-    }
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         EntityManager em = null;
@@ -43,16 +36,17 @@ public class RegistrationServlet extends HttpServlet {
             String state = request.getParameter("state");
             String country = request.getParameter("country");
             String roleStr = request.getParameter("role");
+            String positionStr = request.getParameter("position");
 
             // Input validation
             if (firstName == null || lastName == null || email == null || password == null || confirmPassword == null || birthYearStr == null || state == null || country == null || roleStr == null) {
                 request.setAttribute("error", "All fields are required.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
             if (!password.equals(confirmPassword)) {
                 request.setAttribute("error", "Passwords do not match.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
             int birthYear;
@@ -61,10 +55,11 @@ public class RegistrationServlet extends HttpServlet {
             		birthYear = birthDate.getYear();          
             } catch (DateTimeParseException e) {
                 request.setAttribute("error", "Invalid birth date.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
 
+            EntityManagerFactory emf = getEmf();
             em = emf.createEntityManager();
             // Check for duplicate email
             long count = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.email = :email", Long.class)
@@ -72,7 +67,7 @@ public class RegistrationServlet extends HttpServlet {
                 .getSingleResult();
             if (count > 0) {
                 request.setAttribute("error", "Email already registered.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
 
@@ -97,27 +92,25 @@ public class RegistrationServlet extends HttpServlet {
                 role = Role.valueOf(roleStr.toUpperCase()); 
             } catch (IllegalArgumentException e) {
                 request.setAttribute("error", "Invalid role selected.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
+            user.setRole(role);
 
             if (role == Role.CONTESTER) {
-                request.setAttribute("error", "Contestant accounts are created by an admin.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
-                return;
-            }
-            if (role == Role.ADMIN) {
-                long adminCount = em.createQuery(
-                    "SELECT COUNT(u) FROM User u WHERE u.role = :role", Long.class)
-                    .setParameter("role", Role.ADMIN)
-                    .getSingleResult();
-                if (adminCount > 0) {
-                    request.setAttribute("error", "Admin self-registration is disabled after initial setup.");
-                    request.getRequestDispatcher("/register.jsp").forward(request, response);
+                if (positionStr == null || positionStr.trim().isEmpty()) {
+                    request.setAttribute("error", "Please select a position to contest for.");
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
+                    return;
+                }
+                try {
+                    Position.valueOf(positionStr.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    request.setAttribute("error", "Invalid position selected.");
+                    request.getRequestDispatcher("register.jsp").forward(request, response);
                     return;
                 }
             }
-            user.setRole(role);
 
             
             user.setEmailVerified(false);
@@ -125,6 +118,25 @@ public class RegistrationServlet extends HttpServlet {
 
             em.getTransaction().begin();
             em.persist(user);
+
+            // If Contester, create Contester entity (PENDING) or auto-decline if position is full.
+            if (role == Role.CONTESTER) {
+                Position position = Position.valueOf(positionStr.toUpperCase());
+
+                long approvedCount = em.createQuery(
+                                "SELECT COUNT(c) FROM Contester c WHERE c.position = :position AND c.status = :status",
+                                Long.class
+                        )
+                        .setParameter("position", position)
+                        .setParameter("status", ContesterStatus.APPROVED)
+                        .getSingleResult();
+
+                Contester contester = new Contester();
+                contester.setUser(user);
+                contester.setPosition(position);
+                contester.setStatus(approvedCount >= 3 ? ContesterStatus.DENIED : ContesterStatus.PENDING);
+                em.persist(contester);
+            }
             em.getTransaction().commit();
 
             // Send OTP email
@@ -132,7 +144,8 @@ public class RegistrationServlet extends HttpServlet {
                 EmailUtil.sendVerificationEmail(email, otp);
             } catch (MessagingException e) {
                 request.setAttribute("error", "Registration succeeded, but failed to send OTP email.");
-                request.getRequestDispatcher("/register.jsp").forward(request, response);
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                System.out.println("Error is " + e);
                 return;
             }
             // Redirect to OTP verification page with email as parameter
@@ -150,10 +163,11 @@ public class RegistrationServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }
