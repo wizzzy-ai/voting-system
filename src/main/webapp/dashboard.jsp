@@ -9,25 +9,13 @@
 <body class="bg-gray-100 min-h-screen">
 <%-- Session validation --%>
 <%
-    Object user = null;
-    // Try to get user object from session
-    if (session.getAttribute("user") != null) {
-        user = session.getAttribute("user");
-    } else if (session.getAttribute("userId") != null) {
-        // Optionally, fetch user from DB using userId
-        // For now, just allow access if userId is present
-        user = session.getAttribute("userId");
-    }
-    if (user == null) {
+    Object user = session.getAttribute("user");
+    if (user == null && session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
 
     String userRole = (String) session.getAttribute("userRole");
-    if ("ADMIN".equals(userRole)) {
-        response.sendRedirect("admin.jsp");
-        return;
-    }
 %>
     <section class="max-w-4xl mx-auto mt-10">
         <div class="bg-white rounded shadow p-8">
@@ -52,6 +40,17 @@
                     <p class="mb-4 text-gray-700">Learn more about the candidates and their profiles.</p>
                     <a href="candidates.jsp" class="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">View Candidates</a>
                 </div>
+
+                <% if ("ADMIN".equalsIgnoreCase(userRole)) { %>
+                <!-- Admin Card -->
+                <div class="bg-purple-50 rounded p-6 shadow text-center md:col-span-3">
+                    <h2 class="text-xl font-semibold mb-2">Admin</h2>
+                    <p class="mb-4 text-gray-700">Approve or deny contesters and monitor the election setup.</p>
+                    <a href="<%=request.getContextPath()%>/admin/dashboard"
+                       class="bg-[var(--purple)] text-white px-4 py-2 rounded hover:opacity-95 transition">Manage Contesters</a>
+                </div>
+                <% } %>
+
             </div>
         </div>
     </section>
