@@ -69,7 +69,7 @@ public class EmailUtil {
         Transport.send(message);
     }
 
-    public static void sendPasswordResetEmail(String to, String resetLink) throws MessagingException {
+    public static void sendPasswordResetEmail1(String to, String resetLink) throws MessagingException {
         String host = "smtp.gmail.com";
         String from = "chisomwork17@email.com";
         final String username = "chisomwork17";
