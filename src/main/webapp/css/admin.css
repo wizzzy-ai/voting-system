@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.rise-in { animation: riseIn .45s ease-out both; }
+
+.soft-glow {
+  box-shadow: 0 12px 30px rgba(106, 13, 173, 0.10), 0 10px 24px rgba(80, 200, 120, 0.08);
+}
+
+.glass {
+  background: linear-gradient(135deg, rgba(255,255,255,.90), rgba(255,255,255,.72));
+  border: 1px solid rgba(0,0,0,.06);
+  backdrop-filter: blur(10px);
+}
+
+.pill {
+  background-size: 200% 200%;
+  animation: shimmer 2.5s ease-in-out infinite alternate;
+}
+

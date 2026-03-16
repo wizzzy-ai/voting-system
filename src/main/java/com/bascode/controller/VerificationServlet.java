@@ -3,7 +3,6 @@ package com.bascode.controller;
 import com.bascode.model.entity.User;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -13,13 +12,6 @@ import java.io.IOException;
 
 @WebServlet("/verify")
 public class VerificationServlet extends HttpServlet {
-    private EntityManagerFactory emf;
-
-    @Override
-    public void init() throws ServletException {
-        emf = Persistence.createEntityManagerFactory("online-voting-system");
-    }
-
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String code = request.getParameter("code");
@@ -28,6 +20,7 @@ public class VerificationServlet extends HttpServlet {
             request.getRequestDispatcher("index.jsp").forward(request, response);
             return;
         }
+        EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.verificationCode = :code", User.class)
@@ -51,10 +44,11 @@ public class VerificationServlet extends HttpServlet {
         }
     }
 
-    @Override
-    public void destroy() {
-        if (emf != null) {
-            emf.close();
+    private EntityManagerFactory getEmf() {
+        EntityManagerFactory emf = (EntityManagerFactory) getServletContext().getAttribute("emf");
+        if (emf == null) {
+            throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
+        return emf;
     }
 }

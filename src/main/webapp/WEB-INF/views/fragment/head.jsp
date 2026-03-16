@@ -13,3 +13,30 @@
 
 <!-- Custom CSS -->
 <link rel="stylesheet" href="<%=request.getContextPath()%>/css/index.css">
+
+<script type="text/javascript">
+  // Enables "show/hide password" eye toggles for any button with:
+  // data-password-toggle and data-target="<inputId>".
+  document.addEventListener('DOMContentLoaded', function () {
+    var btns = document.querySelectorAll('[data-password-toggle][data-target]');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var targetId = btn.getAttribute('data-target');
+        if (!targetId) return;
+        var input = document.getElementById(targetId);
+        if (!input) return;
+
+        var isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+
+        // Optional icon swap if present.
+        var iconShow = btn.querySelector('[data-icon="show"]');
+        var iconHide = btn.querySelector('[data-icon="hide"]');
+        if (iconShow && iconHide) {
+          iconShow.classList.toggle('hidden', !isHidden);
+          iconHide.classList.toggle('hidden', isHidden);
+        }
+      });
+    });
+  });
+</script>
