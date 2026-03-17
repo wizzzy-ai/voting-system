@@ -22,6 +22,9 @@ public class Contester {
     @Enumerated(EnumType.STRING)
     private ContesterStatus status;
 
+    @Column(nullable = false)
+    private boolean winner = false;
+
     
 	public Long getId() {
 		return id;
@@ -47,13 +50,21 @@ public class Contester {
 		this.position = position;
 	}
 
-	public ContesterStatus getStatus() {
-		return status;
-	}
+    public ContesterStatus getStatus() {
+        return status;
+    }
 
-	public void setStatus(ContesterStatus status) {
-		this.status = status;
-	}
+    public void setStatus(ContesterStatus status) {
+        this.status = status;
+    }
+
+    public boolean isWinner() {
+        return winner;
+    }
+
+    public void setWinner(boolean winner) {
+        this.winner = winner;
+    }
     
     
 }

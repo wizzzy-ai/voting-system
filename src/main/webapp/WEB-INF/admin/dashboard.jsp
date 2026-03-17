@@ -26,6 +26,19 @@
   @SuppressWarnings("unchecked")
   List<AdminAuditLog> recentActivity = (List<AdminAuditLog>) request.getAttribute("recentActivity");
   if (recentActivity == null) recentActivity = Collections.emptyList();
+
+  @SuppressWarnings("unchecked")
+  List<com.bascode.model.entity.PositionElection> positions =
+      (List<com.bascode.model.entity.PositionElection>) request.getAttribute("positions");
+  if (positions == null) positions = Collections.emptyList();
+
+  @SuppressWarnings("unchecked")
+  Map<com.bascode.model.enums.Position, Long> approvedCounts =
+      (Map<com.bascode.model.enums.Position, Long>) request.getAttribute("approvedCounts");
+  if (approvedCounts == null) approvedCounts = Collections.emptyMap();
+
+  String msg = request.getParameter("msg");
+  String type = request.getParameter("type");
 %>
 
 <header class="sticky top-0 z-10">
@@ -53,6 +66,13 @@
 </header>
 
 <main class="max-w-6xl mx-auto px-4 py-8">
+
+  <% if (msg != null && !msg.trim().isEmpty()) { %>
+    <div class="rise-in mb-6 rounded-2xl p-4 border
+      <%= "success".equalsIgnoreCase(type) ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800" %>">
+      <div class="font-semibold"><%= msg %></div>
+    </div>
+  <% } %>
   <section class="rise-in glass rounded-3xl p-5 md:p-6 soft-glow">
     <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
       <div>
@@ -169,6 +189,112 @@
           View live results breakdown
         </a>
       </div>
+    </div>
+  </section>
+
+  <section class="mt-6 rise-in glass rounded-3xl p-5 md:p-6 soft-glow" style="animation-delay:.1s;">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-gray-900">Manage Contest Positions</h2>
+        <p class="text-sm text-gray-600">Start or end elections per position and view live contesters.</p>
+      </div>
+      <a href="<%=request.getContextPath()%>/admin/election"
+         class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
+        Global Voting Settings
+      </a>
+    </div>
+
+    <div class="mt-5 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-600">
+            <th class="py-3 pr-4">Position</th>
+            <th class="py-3 pr-4">Status</th>
+            <th class="py-3 pr-4">Approved</th>
+            <th class="py-3 pr-4">Voting</th>
+            <th class="py-3 pr-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        <%
+          int posIdx = 0;
+          for (com.bascode.model.entity.PositionElection p : positions) {
+            posIdx++;
+            String pname = p.getName() != null ? p.getName().name().replace('_',' ') : "";
+            String status = p.getStatus() != null ? p.getStatus().name() : "NOT_STARTED";
+            boolean active = "ACTIVE".equalsIgnoreCase(status);
+            boolean ended = "ENDED".equalsIgnoreCase(status);
+            long approved = approvedCounts.get(p.getName()) != null ? approvedCounts.get(p.getName()) : 0L;
+        %>
+          <tr class="rise-in border-t border-gray-100 hover:bg-white/60 transition"
+              style="animation-delay: <%= Math.min(0.6, posIdx * 0.02) %>s;">
+            <td class="py-4 pr-4 font-semibold text-gray-900"><%= pname %></td>
+            <td class="py-4 pr-4">
+              <span class="pill inline-flex items-center px-3 py-1 rounded-full text-xs font-bold
+                <%= active ? "text-green-800" : (ended ? "text-gray-700" : "text-amber-800") %>"
+                style="background-image:<%= active
+                    ? "linear-gradient(135deg, rgba(187,247,208,.85), rgba(220,252,231,.85))"
+                    : (ended
+                        ? "linear-gradient(135deg, rgba(229,231,235,.9), rgba(243,244,246,.9))"
+                        : "linear-gradient(135deg, rgba(253,230,138,.85), rgba(254,215,170,.85))") %>;">
+                <%= status %>
+              </span>
+            </td>
+            <td class="py-4 pr-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold text-gray-800 bg-gray-100">
+                <%= approved %>/3
+              </span>
+            </td>
+            <td class="py-4 pr-4">
+              <span class="pill inline-flex items-center px-3 py-1 rounded-full text-xs font-bold
+                <%= p.isVotingOpen() ? "text-green-800" : "text-red-800" %>"
+                style="background-image:<%= p.isVotingOpen()
+                    ? "linear-gradient(135deg, rgba(187,247,208,.85), rgba(220,252,231,.85))"
+                    : "linear-gradient(135deg, rgba(254,202,202,.85), rgba(255,228,230,.85))" %>;">
+                <%= p.isVotingOpen() ? "OPEN" : "CLOSED" %>
+              </span>
+            </td>
+            <td class="py-4 pr-4">
+              <div class="flex flex-wrap gap-2">
+                <% if ("NOT_STARTED".equalsIgnoreCase(status)) { %>
+                  <form method="post" action="<%=request.getContextPath()%>/admin/start-election"
+                        onsubmit="return confirm('Start election for <%= pname %>?');">
+                    <input type="hidden" name="position" value="<%= p.getName() %>"/>
+                    <button type="submit"
+                            class="px-4 py-2 rounded-xl bg-[var(--green)] text-white font-semibold hover:brightness-95 hover:shadow transition duration-200">
+                      Start Election
+                    </button>
+                  </form>
+                <% } %>
+                <% if (active) { %>
+                  <form method="post" action="<%=request.getContextPath()%>/admin/end-election"
+                        onsubmit="return confirm('Are you sure you want to end this election? This action cannot be undone.');">
+                    <input type="hidden" name="position" value="<%= p.getName() %>"/>
+                    <button type="submit"
+                            class="px-4 py-2 rounded-xl bg-white border border-red-200 text-red-700 font-semibold hover:bg-red-50 hover:shadow transition duration-200">
+                      End Election
+                    </button>
+                  </form>
+                <% } %>
+                <a href="<%=request.getContextPath()%>/admin/position-details?position=<%= p.getName() %>"
+                   class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 font-semibold hover:shadow transition duration-200">
+                  View
+                </a>
+              </div>
+            </td>
+          </tr>
+        <%
+          }
+          if (positions.isEmpty()) {
+        %>
+          <tr class="border-t border-gray-100">
+            <td colspan="5" class="py-8 text-center text-gray-600">No positions configured.</td>
+          </tr>
+        <%
+          }
+        %>
+        </tbody>
+      </table>
     </div>
   </section>
 

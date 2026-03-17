@@ -1,11 +1,14 @@
 package com.bascode.controller.admin;
 
 import com.bascode.model.entity.AdminAuditLog;
+import com.bascode.model.entity.Contester;
+import com.bascode.model.entity.PositionElection;
 import com.bascode.model.entity.User;
 import com.bascode.model.entity.Vote;
-import com.bascode.model.entity.Contester;
 import com.bascode.model.enums.ContesterStatus;
+import com.bascode.model.enums.Position;
 import com.bascode.model.enums.Role;
+import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -15,7 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @WebServlet("/admin/dashboard")
 public class AdminDashboardServlet extends HttpServlet {
@@ -56,6 +61,21 @@ public class AdminDashboardServlet extends HttpServlet {
                     .setMaxResults(8)
                     .getResultList();
 
+            List<PositionElection> positions = PositionElectionUtil.ensureAll(em);
+            Map<Position, Long> approvedCounts = new HashMap<>();
+            List<Object[]> rows = em.createQuery(
+                            "SELECT c.position, COUNT(c.id) FROM Contester c " +
+                                    "WHERE c.status = :s GROUP BY c.position",
+                            Object[].class
+                    )
+                    .setParameter("s", ContesterStatus.APPROVED)
+                    .getResultList();
+            for (Object[] r : rows) {
+                Position p = (Position) r[0];
+                Long cnt = (Long) r[1];
+                if (p != null && cnt != null) approvedCounts.put(p, cnt);
+            }
+
             request.setAttribute("totalUsers", totalUsers);
             request.setAttribute("totalVoters", totalVoters);
             request.setAttribute("totalAdmins", totalAdmins);
@@ -66,6 +86,8 @@ public class AdminDashboardServlet extends HttpServlet {
             request.setAttribute("deniedApps", deniedApps);
             request.setAttribute("totalVotes", totalVotes);
             request.setAttribute("recentActivity", recentActivity);
+            request.setAttribute("positions", positions);
+            request.setAttribute("approvedCounts", approvedCounts);
 
             request.getRequestDispatcher("/WEB-INF/admin/dashboard.jsp").forward(request, response);
         } finally {

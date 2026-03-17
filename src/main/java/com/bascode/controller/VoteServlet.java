@@ -1,11 +1,14 @@
 package com.bascode.controller;
 
-import com.bascode.model.entity.User;
-import com.bascode.model.entity.Vote;
 import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.ElectionSettings;
+import com.bascode.model.entity.PositionElection;
+import com.bascode.model.entity.User;
+import com.bascode.model.entity.Vote;
 import com.bascode.model.enums.ContesterStatus;
+import com.bascode.model.enums.ElectionStatus;
 import com.bascode.model.enums.Role;
+import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -76,6 +79,12 @@ public class VoteServlet extends HttpServlet {
             Contester candidate = em.find(Contester.class, candidateId);
             if (candidate == null || candidate.getStatus() != ContesterStatus.APPROVED) {
                 forwardToVote(request, response, em, user, "Candidate not found.");
+                return;
+            }
+
+            PositionElection pe = PositionElectionUtil.getOrCreate(em, candidate.getPosition());
+            if (pe.getStatus() != ElectionStatus.ACTIVE || !pe.isVotingOpen()) {
+                forwardToVote(request, response, em, user, "Election for this position is not active.");
                 return;
             }
 
