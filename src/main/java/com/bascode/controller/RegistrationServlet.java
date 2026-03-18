@@ -49,6 +49,14 @@ public class RegistrationServlet extends HttpServlet {
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
+            
+         // Password strength validation: must contain letters, numbers, and special characters
+            String passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+            if (!password.matches(passwordPattern)) {
+                request.setAttribute("error", "Password must be at least 8 characters long and include letters, numbers, and one special character.");
+                request.getRequestDispatcher("register.jsp").forward(request, response);
+                return;
+            }
             int birthYear;
             try {
             		LocalDate birthDate = LocalDate.parse(birthYearStr);
