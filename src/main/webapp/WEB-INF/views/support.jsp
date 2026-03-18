@@ -48,11 +48,11 @@
     </div>
   <% } %>
 
-  <div class="chat-glass chat-soft-glow rounded-3xl overflow-hidden border border-gray-100">
+  <div class="">
     <div class="flex flex-col md:flex-row">
 
       <!-- Sidebar (user has exactly one thread with admin) -->
-      <aside class="md:w-80 w-full border-b md:border-b-0 md:border-r border-gray-100 bg-white/40">
+      <aside class="md:w-80 w-full border border-black border-[1px] bg-white/40">
         <div class="p-4">
           <div class="text-xs font-bold tracking-widest text-gray-500">SUPPORT</div>
           <div class="text-sm text-gray-600 mt-1">Your conversation with admin.</div>
@@ -63,7 +63,7 @@
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] soft-glow"></div>
+                  <img alt="logo" src="${pageContext.request.contextPath}/images/logos/fingerPrint.png" class="justify-center w-8 h-8">
                   <div class="min-w-0">
                     <div class="font-extrabold text-gray-900 truncate">Admin Support</div>
                     <div class="text-xs text-gray-500 truncate">WeReply within business hours</div>
@@ -91,9 +91,6 @@
       <section class="flex-1 flex flex-col bg-gradient-to-b from-white/60 via-white/40 to-white/60">
         <div class="p-4 border-b border-gray-100 flex items-center justify-between">
           <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--purple-light)] to-[var(--purple)] flex items-center justify-center text-white font-extrabold">
-              A
-            </div>
             <div class="min-w-0">
               <div class="font-extrabold text-gray-900 truncate">Admin Support</div>
               <div class="text-xs text-gray-600 truncate">
@@ -178,18 +175,21 @@
                   </button>
                 </div>
               </div>
+              <div class="flex items-start justify-between gap-4">
+               <div class="flex flex-col flex-1">
               <textarea id="msg" name="message" rows="1"
                         class="w-full resize-none px-4 py-3 rounded-2xl border border-gray-200 bg-white/90 focus:outline-none focus:ring-2 focus:ring-[var(--green)] transition"
                         placeholder="Type your message..."></textarea>
-              <div class="text-[11px] text-gray-500 mt-2">Enter to send, Shift+Enter for a new line.</div>
-            </div>
+              <p class="text-[11px] text-gray-500 mt-2">Enter to send, Shift+Enter for a new line.</p>
+           	 </div>
+           	
             <button type="submit"
-                    class="h-12 px-5 rounded-2xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white font-extrabold hover:brightness-95 hover:shadow transition flex items-center gap-2">
+			class="h-12 px-5 rounded-2xl bg-gradient-to-r from-[var(--purple-light)] cursor-pointer 
+			to-[var(--purple)] text-white font-extrabold hover:brightness-95 hover:shadow transition flex items-center gap-2">
               <span>Send</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10l9-7 9 7-9 11-9-11z"/>
-              </svg>
             </button>
+             </div>
+            </div>
           </form>
         </div>
       </section>

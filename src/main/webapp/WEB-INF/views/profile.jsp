@@ -24,7 +24,7 @@
         <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Your Profile</h1>
         <p class="text-gray-600 mt-1">Update your details and change your password.</p>
       </div>
-      <div class="hidden md:block w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] shadow-lg"></div>
+      <img alt="logo" src="${pageContext.request.contextPath}/images/logos/fingerPrint.png" class="justify-center w-12 h-12">
     </div>
 
     <% if (request.getAttribute("error") != null) { %>

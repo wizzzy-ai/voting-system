@@ -2,7 +2,6 @@
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ page import="java.util.*,com.bascode.model.entity.Contester,com.bascode.model.entity.User" %>
 <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
-<%@ include file="/WEB-INF/views/fragment/navbar.jsp" %>
 <html lang="en">
 <head>
     <title>Candidates - Voting System</title>
@@ -25,7 +24,7 @@
                 <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">Approved Contesters</h1>
                 <p class="text-gray-600 mt-1">Browse contesters and the positions they are contesting for.</p>
               </div>
-              <div class="hidden md:block w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] shadow-lg"></div>
+              <img alt="logo" src="${pageContext.request.contextPath}/images/logos/fingerPrint.png" class="justify-center w-12 h-12">
             </div>
 
             <div class="mt-6 space-y-4">
@@ -63,6 +62,7 @@
               %>
             </div>
         </div>
+        <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
     </section>
 </body>
 </html>

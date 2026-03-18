@@ -33,16 +33,6 @@
       <span class="text-[12px] mt-1 text-black">Elections</span>
     </a>
 
-    <!-- Blog -->
-    <a href="blog" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
-      <svg class="w-7 h-7 text-black transition-colors" 
-           fill="none" stroke="black" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M7 8h10M7 12h6m-6 4h10M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-      </svg>
-      <span class="text-[12px] mt-1 text-black">Blog</span>
-    </a>
-
     <!-- Profile -->
     <a href="profile" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
       <svg class="w-7 h-7 transition-colors"  viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,6 +51,15 @@
 .active-nav span {
   color: var(--green) !important;
   stroke: var(--green) !important;
+}
+
+.fixed {
+  background: rgba(255, 255, 255, 0.15); /* translucent ash */
+  backdrop-filter: blur(12px);            /* glass blur effect */
+  -webkit-backdrop-filter: blur(12px);    /* Safari support */
+  border-radius: 20px;                    /* rounded corners */
+  border: 1px solid rgba(255, 255, 255, 0.3); /* subtle metallic border */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1); /* soft shadow for depth */
 }
 </style>
 

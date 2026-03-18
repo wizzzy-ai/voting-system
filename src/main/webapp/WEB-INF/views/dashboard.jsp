@@ -30,7 +30,7 @@
 	<section>
 
 		<header
-			class="bg-white px-8 py-4 flex items-center justify-between border-b border-gray-100">
+			class="bg-white px-2 py-4 flex items-center justify-between border-b border-gray-100">
 			<div class="flex items-center gap-2">
 				<a href="${pageContext.request.contextPath}/"> <img alt="Logo"
 					class="cursor-pointer lg:h-[35px] lg:w-[200px] h-[35px] w-[130px]"
@@ -96,8 +96,8 @@
 					class="p-8 bg-white border-r border-gray-100 hover:bg-gray-50 transition-colors group">
 					<div class="flex items-baseline gap-2">
 						<span
-							class="text-4xl font-black text-gray-900 group-hover:text-[#6A0DAD] transition-colors">03</span>
-						<span class="text-[10px] font-bold text-[#50C878] uppercase">+1
+							class="text-4xl font-black text-gray-900 group-hover:text-[#6A0DAD] transition-colors">0</span>
+						<span class="text-[10px] font-bold text-[#50C878] uppercase">
 							NEW</span>
 					</div>
 					<p
@@ -111,7 +111,7 @@
 					class="p-8 bg-white border-r border-gray-100 hover:bg-gray-50 transition-colors group">
 					<div class="flex items-baseline gap-2">
 						<span
-							class="text-4xl font-black text-gray-900 group-hover:text-[#6A0DAD] transition-colors">12</span>
+							class="text-4xl font-black text-gray-900 group-hover:text-[#6A0DAD] transition-colors">0</span>
 						<span class="text-[10px] font-bold text-gray-400 uppercase">TOTAL</span>
 					</div>
 					<p

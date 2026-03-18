@@ -1,18 +1,16 @@
 <!-- Floating Contact Button -->
 <div id="contact-btn"
-	class="fixed bottom-28 right-6 opacity-0 translate-y-4 
+	class="fixed bottom-28 right-6 opacity-0 translate-y-4  
             transition-all duration-700 ease-out cursor-pointer z-50
-            md:bottom-20 md:right-8">
+            md:bottom-20 md:right-8 bg-transparent border-none">
 	<div class="relative flex items-center justify-center">
 		<!-- Pulse ring -->
-		<span
-			class="absolute inline-flex h-28 w-28 rounded-full bg-purple-500 opacity-50 animate-ping
-                 sm:h-12 sm:w-12"></span>
+<span class="absolute inline-flex hidden md:block h-15 w-15 rounded-full border border-purple-500 opacity-50 animate-ping"></span>
 		<!-- Icon -->
 <a href="support" class="cursor-pointer">
 		<svg
-			class="relative w-20 h-20 text-purple-600 animate-[shake_2s_infinite] 
-                sm:w-16 sm:h-16"
+			class="relative w-10 h-10 md:w-20 md:h-20 text-purple-600 animate-[shake_2s_infinite] 
+               "
 			viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"
 			fill="currentColor">
       <path
