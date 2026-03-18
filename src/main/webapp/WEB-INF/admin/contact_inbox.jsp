@@ -64,7 +64,7 @@
 
   <section class="mt-6 rise-in glass rounded-3xl p-5 md:p-6 soft-glow" style="animation-delay:.05s;">
     <div class="mt-1 overflow-x-auto">
-      <table class="w-full text-sm">
+      <table class="admin-table w-full text-sm">
         <thead>
           <tr class="text-left text-gray-600">
             <th class="py-3 pr-4">Time</th>

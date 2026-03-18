@@ -123,7 +123,7 @@ public class ContesterSelfVoteServlet extends HttpServlet {
         }
         boolean closedByToggle = !settings.isVotingOpen();
         boolean closedByDeadline = settings.getVotingClosesAt() != null &&
-                LocalDateTime.now().isAfter(settings.getVotingClosesAt());
+                !LocalDateTime.now().isBefore(settings.getVotingClosesAt());
         if (closedByDeadline) {
             return new VotingStatus(false, "Voting deadline reached.");
         }
@@ -146,4 +146,3 @@ public class ContesterSelfVoteServlet extends HttpServlet {
         return null;
     }
 }
-

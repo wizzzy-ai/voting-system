@@ -1,6 +1,7 @@
 package com.bascode.model.entity;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import com.bascode.model.enums.Role;   // ✅ Import your Role enum
 
 @Entity
@@ -20,6 +21,7 @@ public class User {
     private String passwordHash;
 
     private int birthYear;
+    private LocalDate birthDate;
     private String state;
     private String country;
 
@@ -81,6 +83,13 @@ public class User {
     }
     public void setBirthYear(int birthYear) {
         this.birthYear = birthYear;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+    public void setBirthDate(LocalDate birthDate) {
+        this.birthDate = birthDate;
     }
 
     public String getState() {

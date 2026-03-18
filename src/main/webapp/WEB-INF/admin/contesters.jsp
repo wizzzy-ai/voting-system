@@ -129,7 +129,7 @@
       </div>
 
       <div class="mt-5 overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="admin-table w-full text-sm">
           <thead>
             <tr class="text-left text-gray-600">
               <th class="py-3 pr-4">Name</th>

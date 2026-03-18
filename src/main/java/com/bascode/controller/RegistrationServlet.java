@@ -50,9 +50,10 @@ public class RegistrationServlet extends HttpServlet {
                 return;
             }
             int birthYear;
+            LocalDate birthDate;
             try {
-            		LocalDate birthDate = LocalDate.parse(birthYearStr);
-            		birthYear = birthDate.getYear();          
+                birthDate = LocalDate.parse(birthYearStr);
+                birthYear = birthDate.getYear();
             } catch (DateTimeParseException e) {
                 request.setAttribute("error", "Invalid birth date.");
                 request.getRequestDispatcher("register.jsp").forward(request, response);
@@ -84,6 +85,7 @@ public class RegistrationServlet extends HttpServlet {
             user.setEmail(email);
             user.setPasswordHash(passwordHash);
             user.setBirthYear(birthYear);
+            user.setBirthDate(birthDate);
             user.setState(state);
             user.setCountry(country);
          
