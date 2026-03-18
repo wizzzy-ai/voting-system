@@ -129,7 +129,7 @@
       </div>
 
       <div class="mt-5 overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="admin-table w-full text-sm">
           <thead>
             <tr class="text-left text-gray-600">
               <th class="py-3 pr-4">Name</th>
@@ -188,6 +188,9 @@
                   <form method="post" action="<%=request.getContextPath()%>/admin/contesters/status">
                     <input type="hidden" name="contesterId" value="<%= c.getId() %>"/>
                     <input type="hidden" name="action" value="deny"/>
+                    <input type="text" name="reason" placeholder="Reason (optional)"
+                           class="px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm w-48"
+                           <%= (st == ContesterStatus.DENIED) ? "disabled" : "" %> />
                     <button type="submit"
                             class="px-4 py-2 rounded-xl bg-white border border-red-200 text-red-700 font-semibold hover:bg-red-50 hover:shadow transition duration-200"
                             <%= (st == ContesterStatus.DENIED) ? "disabled" : "" %>>

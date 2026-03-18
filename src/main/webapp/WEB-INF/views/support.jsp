@@ -1,11 +1,10 @@
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ page import="java.util.*,java.time.format.DateTimeFormatter,com.bascode.model.entity.SupportConversation,com.bascode.model.entity.SupportMessage,com.bascode.model.entity.User,com.bascode.model.enums.SupportSender,com.bascode.util.HtmlUtil" %>
-<%@ include file="/WEB-INF/views/fragment/head.jsp" %>
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
   <title>Support - Voting System</title>
   <link rel="stylesheet" href="<%=request.getContextPath()%>/css/chat.css">
   <style>
@@ -14,6 +13,7 @@
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
 
 <%
   User me = (User) request.getAttribute("user");
@@ -36,7 +36,7 @@
   String err = request.getParameter("err");
 %>
 
-<section class="max-w-6xl mx-auto pt-10 px-4 pb-10">
+<section class="max-w-6xl mx-auto pt-28 px-4 pb-10">
 
   <% if ("empty".equalsIgnoreCase(err)) { %>
     <div class="mb-4 rounded-2xl p-4 border bg-amber-50 border-amber-200 text-amber-900">
@@ -195,7 +195,18 @@
       </section>
     </div>
   </div>
-  <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
+  <%
+    String userRole = session != null ? (String) session.getAttribute("userRole") : null;
+      if ("CONTESTER".equalsIgnoreCase(userRole)) {
+  %>
+    <%@ include file="/WEB-INF/views/fragment/bottomNavContester.jsp" %>
+  <%
+    } else {
+  %>
+    <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
+  <%
+    }
+  %>
 </section>
 
 <script type="text/javascript">
@@ -276,13 +287,59 @@
     });
     if (!ta) return;
 
+    function appendMessage(msg) {
+      if (!history) return;
+      var wrap = document.createElement('div');
+      wrap.className = 'w-full flex justify-end';
+      wrap.innerHTML =
+        '<div id="msg-' + msg.id + '" class="chat-bubble rounded-2xl px-4 py-3 chat-bubble-user">' +
+          '<div class="text-sm text-gray-900 whitespace-pre-wrap"></div>' +
+          '<div class="mt-2 flex items-center justify-between gap-3 text-[11px] text-gray-500">' +
+            '<span></span>' +
+            '<div>' + (msg.timestamp || '') + '</div>' +
+          '</div>' +
+        '</div>';
+      wrap.querySelector('.text-sm').textContent = msg.body || '';
+      history.appendChild(wrap);
+      history.scrollTop = history.scrollHeight;
+    }
+
+    function sendMessageAjax(form) {
+      var body = ta.value || '';
+      if (!body.trim()) return;
+      var data = new FormData(form);
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+        body: data
+      })
+      .then(function (r) {
+        if (!r.ok) throw new Error('send failed');
+        return r.json();
+      })
+      .then(function (json) {
+        appendMessage(json);
+        ta.value = '';
+        clearReply();
+      })
+      .catch(function () {
+        // fallback to full submit if ajax fails
+        form.submit();
+      });
+    }
+
+    var form = ta.form;
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        sendMessageAjax(form);
+      });
+    }
+
     ta.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        var form = ta.form;
-        if (!form) return;
-        if (!ta.value || !ta.value.trim()) return;
-        form.submit();
+        if (form) sendMessageAjax(form);
       }
     });
   })();

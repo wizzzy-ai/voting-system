@@ -2,13 +2,10 @@ package com.bascode.controller;
 
 import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.ElectionSettings;
-import com.bascode.model.entity.PositionElection;
 import com.bascode.model.entity.User;
 import com.bascode.model.entity.Vote;
 import com.bascode.model.enums.ContesterStatus;
-import com.bascode.model.enums.ElectionStatus;
 import com.bascode.model.enums.Role;
-import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -39,16 +36,9 @@ public class VoteServlet extends HttpServlet {
                 return;
             }
 
-            ElectionSettings settings = em.createQuery("SELECT s FROM ElectionSettings s ORDER BY s.id ASC", ElectionSettings.class)
-                    .setMaxResults(1)
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
-            boolean closedByToggle = settings != null && !settings.isVotingOpen();
-            boolean closedByDeadline = settings != null && settings.getVotingClosesAt() != null &&
-                    LocalDateTime.now().isAfter(settings.getVotingClosesAt());
-            if (closedByToggle || closedByDeadline) {
-                String reason = closedByDeadline ? "Voting deadline reached." : "Voting is currently closed by the admin.";
+            VotingStatus vs = resolveVotingStatus(em);
+            if (!vs.open) {
+                String reason = vs.reason != null ? vs.reason : "Voting is closed.";
                 request.setAttribute("votingClosed", true);
                 request.setAttribute("votingClosedReason", reason);
                 request.setAttribute("candidates", java.util.Collections.emptyList());
@@ -79,12 +69,6 @@ public class VoteServlet extends HttpServlet {
             Contester candidate = em.find(Contester.class, candidateId);
             if (candidate == null || candidate.getStatus() != ContesterStatus.APPROVED) {
                 forwardToVote(request, response, em, user, "Candidate not found.");
-                return;
-            }
-
-            PositionElection pe = PositionElectionUtil.getOrCreate(em, candidate.getPosition());
-            if (pe.getStatus() != ElectionStatus.ACTIVE || !pe.isVotingOpen()) {
-                forwardToVote(request, response, em, user, "Election for this position is not active.");
                 return;
             }
 
@@ -128,6 +112,40 @@ public class VoteServlet extends HttpServlet {
         return emf;
     }
 
+    private static class VotingStatus {
+        final boolean open;
+        final String reason;
+        VotingStatus(boolean open, String reason) {
+            this.open = open;
+            this.reason = reason;
+        }
+    }
+
+    private static VotingStatus resolveVotingStatus(EntityManager em) {
+        ElectionSettings settings = em.createQuery(
+                        "SELECT s FROM ElectionSettings s ORDER BY s.id ASC",
+                        ElectionSettings.class
+                )
+                .setMaxResults(1)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+
+        if (settings == null) {
+            return new VotingStatus(true, null);
+        }
+        boolean closedByToggle = !settings.isVotingOpen();
+        boolean closedByDeadline = settings.getVotingClosesAt() != null &&
+                !LocalDateTime.now().isBefore(settings.getVotingClosesAt());
+        if (closedByDeadline) {
+            return new VotingStatus(false, "Voting deadline reached.");
+        }
+        if (closedByToggle) {
+            return new VotingStatus(false, "Voting is currently closed by the admin.");
+        }
+        return new VotingStatus(true, null);
+    }
+
     private static User resolveUser(HttpSession session, EntityManager em) {
         Object u = session.getAttribute("user");
         if (u instanceof User) {
@@ -156,16 +174,29 @@ public class VoteServlet extends HttpServlet {
 
         if (user != null && user.getRole() == Role.CONTESTER) {
             Contester self = em.createQuery(
-                            "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :uid AND c.status = :s",
+                            "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :uid",
                             Contester.class
                     )
                     .setParameter("uid", user.getId())
-                    .setParameter("s", ContesterStatus.APPROVED)
                     .getResultStream()
                     .findFirst()
                     .orElse(null);
-            request.setAttribute("candidates", self != null ? java.util.List.of(self) : java.util.Collections.emptyList());
-            request.setAttribute("isContesterSelfVote", true);
+            if (self != null && self.getPosition() != null) {
+                var candidates = em.createQuery(
+                                "SELECT c FROM Contester c JOIN FETCH c.user u " +
+                                        "WHERE c.status = :s AND c.position = :p AND c.user.id <> :uid " +
+                                        "ORDER BY u.lastName ASC, u.firstName ASC",
+                                Contester.class
+                        )
+                        .setParameter("s", ContesterStatus.APPROVED)
+                        .setParameter("p", self.getPosition())
+                        .setParameter("uid", user.getId())
+                        .getResultList();
+                request.setAttribute("candidates", candidates);
+            } else {
+                request.setAttribute("candidates", java.util.Collections.emptyList());
+            }
+            request.setAttribute("contesterRestricted", true);
         } else {
             var candidates = em.createQuery(
                             "SELECT c FROM Contester c JOIN FETCH c.user u WHERE c.status = :s ORDER BY c.position ASC, u.lastName ASC, u.firstName ASC",
@@ -174,7 +205,7 @@ public class VoteServlet extends HttpServlet {
                     .setParameter("s", ContesterStatus.APPROVED)
                     .getResultList();
             request.setAttribute("candidates", candidates);
-            request.setAttribute("isContesterSelfVote", false);
+            request.setAttribute("contesterRestricted", false);
         }
 
         request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);

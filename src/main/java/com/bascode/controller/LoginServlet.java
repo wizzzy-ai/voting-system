@@ -2,6 +2,7 @@
 
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.Role;
+import com.bascode.util.AgeUtil;
 
 import org.mindrot.jbcrypt.BCrypt;
 import jakarta.persistence.EntityManager;
@@ -51,9 +52,14 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("lastName", user.getLastName());
             // Some pages/servlets still expect a "user" session attribute.
             session.setAttribute("user", user);
-         // ✅ Updated redirect logic
+            boolean underage = AgeUtil.isUnderage(user);
+            session.setAttribute("underage", underage);
+            if (underage) {
+                response.sendRedirect(request.getContextPath() + "/underage.jsp");
+                return;
+            }
             if (user.getRole() == Role.ADMIN) {
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard");
+                response.sendRedirect(request.getContextPath() + "/admin/contesters");
             } else if (user.getRole() == Role.CONTESTER) {
                 response.sendRedirect(request.getContextPath() + "/contester/dashboard");
             } else {
@@ -81,3 +87,5 @@ public class LoginServlet extends HttpServlet {
         return emf;
     }
 }
+
+
