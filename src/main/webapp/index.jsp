@@ -64,7 +64,7 @@
 <!-- steps -->
 <section class="px-6 py-12" id="how-it-works">
   <h2 class="text-center text-3xl md:text-4xl font-bold mb-10 text-[var(--purple)]">
-    How Does It Work?
+    How Does It Work
   </h2>
 
   <div class="grid grid-cols-2 gap-8 md:grid-cols-4 text-center">
