@@ -1,10 +1,8 @@
-package com.bascode.controller;
+package com.bascode.controller.contester;
 
 import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.ElectionSettings;
 import com.bascode.model.entity.User;
-import com.bascode.model.enums.ContesterStatus;
-import com.bascode.model.enums.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -16,69 +14,57 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 
-@WebServlet("/vote")
-public class VotePageServlet extends HttpServlet {
+@WebServlet("/contester/dashboard")
+public class ContesterDashboardServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        Long userId = toLong(session != null ? session.getAttribute("userId") : null);
-
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
-            VotingStatus vs = resolveVotingStatus(em);
-            request.setAttribute("votingClosed", !vs.open);
-            request.setAttribute("votingClosedReason", vs.reason);
-
-            if (!vs.open) {
-                request.setAttribute("candidates", Collections.emptyList());
-                request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);
+            HttpSession session = request.getSession(false);
+            User user = requireUser(session, em);
+            if (user == null) {
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
                 return;
             }
 
-            List<Contester> candidates;
+            Contester contester = em.createQuery(
+                            "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :userId",
+                            Contester.class
+                    )
+                    .setParameter("userId", user.getId())
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
 
-            User user = userId != null ? em.find(User.class, userId) : null;
-            if (user != null && user.getRole() == Role.CONTESTER) {
-                Contester self = em.createQuery(
-                                "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :uid",
-                                Contester.class
+            long voteCount = 0L;
+            if (contester != null && contester.getId() != null) {
+                voteCount = em.createQuery(
+                                "SELECT COUNT(v) FROM Vote v WHERE v.contester.id = :contesterId",
+                                Long.class
                         )
-                        .setParameter("uid", user.getId())
-                        .getResultStream()
-                        .findFirst()
-                        .orElse(null);
-                if (self != null && self.getPosition() != null) {
-                    candidates = em.createQuery(
-                                    "SELECT c FROM Contester c JOIN FETCH c.user u " +
-                                            "WHERE c.status = :s AND c.position = :p AND c.user.id <> :uid " +
-                                            "ORDER BY u.lastName ASC, u.firstName ASC",
-                                    Contester.class
-                            )
-                            .setParameter("s", ContesterStatus.APPROVED)
-                            .setParameter("p", self.getPosition())
-                            .setParameter("uid", user.getId())
-                            .getResultList();
-                } else {
-                    candidates = Collections.emptyList();
-                }
-                request.setAttribute("contesterRestricted", true);
-            } else {
-                candidates = em.createQuery(
-                                "SELECT c FROM Contester c JOIN FETCH c.user u WHERE c.status = :s ORDER BY c.position ASC, u.lastName ASC, u.firstName ASC",
-                                Contester.class
-                        )
-                        .setParameter("s", ContesterStatus.APPROVED)
-                        .getResultList();
-                request.setAttribute("contesterRestricted", false);
+                        .setParameter("contesterId", contester.getId())
+                        .getSingleResult();
             }
 
-            request.setAttribute("candidates", candidates);
-            request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);
+            long selfVoted = em.createQuery(
+                            "SELECT COUNT(v) FROM Vote v WHERE v.voter.id = :uid",
+                            Long.class
+                    )
+                    .setParameter("uid", user.getId())
+                    .getSingleResult();
+
+            VotingStatus vs = resolveVotingStatus(em);
+
+            request.setAttribute("user", user);
+            request.setAttribute("contester", contester);
+            request.setAttribute("voteCount", voteCount);
+            request.setAttribute("hasVoted", selfVoted > 0);
+            request.setAttribute("votingOpen", vs.open);
+            request.setAttribute("votingClosedReason", vs.reason);
+            request.getRequestDispatcher("/WEB-INF/contester/contester.jsp").forward(request, response);
         } finally {
             em.close();
         }
@@ -90,6 +76,15 @@ public class VotePageServlet extends HttpServlet {
             throw new IllegalStateException("EntityManagerFactory not found in ServletContext. Ensure JPAInitializer is registered.");
         }
         return emf;
+    }
+
+    private static User requireUser(HttpSession session, EntityManager em) {
+        if (session == null) return null;
+        Object idObj = session.getAttribute("userId");
+        if (idObj == null) return null;
+        Long id = toLong(idObj);
+        if (id == null) return null;
+        return em.find(User.class, id);
     }
 
     private static Long toLong(Object v) {

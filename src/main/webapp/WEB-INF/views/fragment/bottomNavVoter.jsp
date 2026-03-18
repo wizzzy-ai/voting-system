@@ -3,7 +3,7 @@
   <div class="flex justify-between items-center">
 
     <!-- Home -->
-    <a href="dashboard" class="cursor-pointer flex flex-col items-center justify-center p-2 group active-nav">
+    <a href="<%=request.getContextPath()%>/dashboard" class="cursor-pointer flex flex-col items-center justify-center p-2 group active-nav">
       <svg class="w-7 h-7 text-black transition-colors" 
            fill="none" stroke="black" viewBox="0 0 20 20">
         <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 1 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
@@ -12,7 +12,7 @@
     </a>
 
     <!-- Results -->
-    <a href="results" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
+    <a href="<%=request.getContextPath()%>/results" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
       <svg class="w-7 h-7  transition-colors"   viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round">
       </g><g id="SVGRepo_iconCarrier"><path d="M16 10H8V9h8zm-4.87 11l1.064 1H3.5C2.122 22 1 20.43 1 18.5S2.122 15 3.5 15H5V5.75C5 3.682 6.122 2 7.5 2h13c1.378 0 2.45 1.57 2.45 3.5S21.878 9 20.5 9H19v7.138l-1 .979V5.75A5.994 5.994 0 0 1 18.64 3H7.5C6.792 3 6 4.176 6 5.75V15h10.57l-.71.826A4.141 4.141 0 0 0 15 18.5a5.186 5.186 0 0 0 .047.692l-1.032-.971A5.555 5.555 0 0 1 14.557 16H3.5C2.701 16 2 17.168 2 18.5S2.701 21 3.5 21zM19 8h1.5c.799 0 1.55-1.168 1.55-2.5S21.299 3 20.5 3h-.677A4.62 4.62 0 0 0 19 5.75zM8 13h8v-1H8zm8-7H8v1h8zm6.491 8.819l-6.998 6.851-2.832-2.663-.685.728 3.53 3.321 7.685-7.522z">
@@ -21,7 +21,7 @@
     </a>
 
     <!-- Elections -->
-    <a href="vote" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
+    <a href="<%=request.getContextPath()%>/vote" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
       <svg class="w-7 h-7 text-black transition-colors"  
        fill="#000000" height="64px" width="64px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" 
       xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> 
@@ -33,8 +33,9 @@
       <span class="text-[12px] mt-1 text-black">Elections</span>
     </a>
 
+
     <!-- Profile -->
-    <a href="profile" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
+    <a href="<%=request.getContextPath()%>/profile" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
       <svg class="w-7 h-7 transition-colors"  viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
       <g id="SVGRepo_iconCarrier"> <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="#000000" 
@@ -65,12 +66,11 @@
 
 <script>
   const currentPath = window.location.pathname.toLowerCase();
-  const currentPage = currentPath.split('/').pop();
   const navLinks = document.querySelectorAll('.fixed a');
 
   navLinks.forEach(link => {
     const href = link.getAttribute('href').toLowerCase();
-    if (href === currentPage) {
+    if (href !== '#' && (currentPath === href || currentPath.endsWith(href))) {
       link.classList.add('active-nav');
     } else {
       link.classList.remove('active-nav');

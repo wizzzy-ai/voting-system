@@ -1,4 +1,4 @@
-package com.bascode.controller;
+package com.bascode.controller.contester;
 
 import com.bascode.model.entity.Contester;
 import com.bascode.model.enums.ContesterStatus;
@@ -16,8 +16,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-@WebServlet("/candidates")
-public class CandidatesServlet extends HttpServlet {
+@WebServlet("/contester/candidates")
+public class ContesterCandidatesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         EntityManagerFactory emf = getEmf();
@@ -48,7 +48,7 @@ public class CandidatesServlet extends HttpServlet {
 
             request.setAttribute("grouped", grouped);
             request.setAttribute("positionCounts", counts);
-            request.getRequestDispatcher("/WEB-INF/views/candidates.jsp").forward(request, response);
+            request.getRequestDispatcher("/WEB-INF/contester/candidates.jsp").forward(request, response);
         } finally {
             em.close();
         }
@@ -62,3 +62,4 @@ public class CandidatesServlet extends HttpServlet {
         return emf;
     }
 }
+

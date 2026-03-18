@@ -13,6 +13,11 @@
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
 
+	<!-- JPA initializer -->
+	<listener>
+		<listener-class>com.bascode.util.JPAInitializer</listener-class>
+	</listener>
+
 
 	<!-- GLOBAL ERROR HANDLING -->
 

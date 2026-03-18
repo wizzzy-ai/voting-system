@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @WebServlet("/support")
@@ -72,7 +73,14 @@ public class SupportServlet extends HttpServlet {
         String body = trimToNull(request.getParameter("message"));
         Long replyToId = toLong(request.getParameter("replyToMessageId"));
         if (body == null) {
-            response.sendRedirect(request.getContextPath() + "/support?err=empty");
+            if (isAjax(request)) {
+                response.setStatus(400);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\":\"empty\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/support?err=empty");
+            }
             return;
         }
 
@@ -106,10 +114,33 @@ public class SupportServlet extends HttpServlet {
             em.merge(conversation);
             em.getTransaction().commit();
 
+            if (isAjax(request)) {
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                String when = msg.getCreatedAt() != null
+                        ? msg.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a"))
+                        : "";
+                String json = "{"
+                        + "\"id\":" + msg.getId() + ","
+                        + "\"body\":\"" + jsonEscape(msg.getBody()) + "\","
+                        + "\"sender\":\"USER\","
+                        + "\"timestamp\":\"" + jsonEscape(when) + "\""
+                        + "}";
+                response.getWriter().write(json);
+                return;
+            }
+
             response.sendRedirect(request.getContextPath() + "/support");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            response.sendRedirect(request.getContextPath() + "/support?err=system");
+            if (isAjax(request)) {
+                response.setStatus(500);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("{\"error\":\"system\"}");
+            } else {
+                response.sendRedirect(request.getContextPath() + "/support?err=system");
+            }
         } finally {
             em.close();
         }
@@ -138,6 +169,20 @@ public class SupportServlet extends HttpServlet {
         if (s == null) return null;
         s = s.trim();
         return s.isEmpty() ? null : s;
+    }
+
+    private static boolean isAjax(HttpServletRequest request) {
+        String requestedWith = request.getHeader("X-Requested-With");
+        String accept = request.getHeader("Accept");
+        return "XMLHttpRequest".equalsIgnoreCase(requestedWith) || (accept != null && accept.contains("application/json"));
+    }
+
+    private static String jsonEscape(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\r", "")
+                .replace("\n", "\\n");
     }
 
     private static Long toLong(Object v) {

@@ -27,7 +27,7 @@ public class ResultsServlet extends HttpServlet {
                                     "LEFT JOIN Vote v ON v.contester = c " +
                                     "WHERE c.status = :status " +
                                     "GROUP BY c " +
-                                    "ORDER BY c.position ASC, COUNT(v.id) DESC, u.lastName ASC, u.firstName ASC",
+                                    "ORDER BY COUNT(v.id) DESC, c.position ASC, u.lastName ASC, u.firstName ASC",
                             Object[].class
                     )
                     .setParameter("status", ContesterStatus.APPROVED)

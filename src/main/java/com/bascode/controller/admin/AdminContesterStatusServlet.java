@@ -24,6 +24,7 @@ public class AdminContesterStatusServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String idStr = request.getParameter("contesterId");
         String action = request.getParameter("action"); // approve | deny
+        String reason = request.getParameter("reason");
 
         Long contesterId;
         try {
@@ -50,6 +51,7 @@ public class AdminContesterStatusServlet extends HttpServlet {
             if ("deny".equalsIgnoreCase(action)) {
                 em.getTransaction().begin();
                 contester.setStatus(ContesterStatus.DENIED);
+                contester.setStatusReason(reason != null && !reason.trim().isEmpty() ? reason.trim() : "Not provided");
                 em.merge(contester);
                 persistAudit(request, em, AdminActionType.CONTESTER_DENIED, "Contester", contester.getId(),
                         "Denied contester for position " + contester.getPosition());
@@ -74,6 +76,7 @@ public class AdminContesterStatusServlet extends HttpServlet {
 
             em.getTransaction().begin();
             contester.setStatus(ContesterStatus.APPROVED);
+            contester.setStatusReason(null);
             em.merge(contester);
             persistAudit(request, em, AdminActionType.CONTESTER_APPROVED, "Contester", contester.getId(),
                     "Approved contester for position " + contester.getPosition());

@@ -1,5 +1,5 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
-<%@ page import="com.bascode.model.entity.ElectionSettings" %>
+<%@ page import="com.bascode.model.entity.ElectionSettings,java.time.LocalDateTime,java.time.ZoneId,java.time.format.DateTimeFormatter" %>
 <%@ include file="/WEB-INF/views/fragment/head.jsp"%>
 
 <!DOCTYPE html>
@@ -17,6 +17,9 @@
   String msg = request.getParameter("msg");
   String type = request.getParameter("type");
   String err = (String) request.getAttribute("error");
+  LocalDateTime serverNow = LocalDateTime.now();
+  String serverTz = ZoneId.systemDefault().getId();
+  DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
 %>
 
 <header class="sticky top-0 z-10">
@@ -84,10 +87,13 @@
 
       <div class="rounded-2xl bg-white/70 border border-gray-100 p-4">
         <div class="font-semibold text-gray-900">Optional Deadline</div>
-        <div class="text-sm text-gray-600">If set, voting will be considered closed after this time.</div>
+        <div class="text-sm text-gray-600">
+          If set, voting will be considered closed after this time.
+          Server time: <%= dtf.format(serverNow) %> (<%= serverTz %>).
+        </div>
         <div class="mt-3">
           <input type="datetime-local" name="votingClosesAt"
-                 value="<%= s.getVotingClosesAt() != null ? s.getVotingClosesAt().toString() : "" %>"
+                 value="<%= s.getVotingClosesAt() != null ? dtf.format(s.getVotingClosesAt()) : "" %>"
                  class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--purple-light)] transition" />
         </div>
       </div>
