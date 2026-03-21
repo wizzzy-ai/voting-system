@@ -29,4 +29,8 @@ buildNumber.properties
 .vscode/
 nbproject/private/
 build/
+bin/
+.metadata/
+.smarttomcat/
+node_modules/
 

@@ -1,6 +1,7 @@
 package com.bascode.controller;
 
 import com.bascode.model.entity.User;
+import com.bascode.util.ContesterAccessUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -21,16 +22,6 @@ public class DashboardServlet extends HttpServlet {
             return;
         }
 
-        String roleStr = String.valueOf(session.getAttribute("userRole"));
-        if ("ADMIN".equalsIgnoreCase(roleStr)) {
-            response.sendRedirect(request.getContextPath() + "/admin/contesters");
-            return;
-        }
-        if ("CONTESTER".equalsIgnoreCase(roleStr)) {
-            response.sendRedirect(request.getContextPath() + "/contester/dashboard");
-            return;
-        }
-
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
@@ -38,6 +29,14 @@ public class DashboardServlet extends HttpServlet {
             User user = userId != null ? em.find(User.class, userId) : null;
             if (user == null) {
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
+                return;
+            }
+            if (user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole().name())) {
+                response.sendRedirect(request.getContextPath() + "/admin/contesters");
+                return;
+            }
+            if (ContesterAccessUtil.hasContesterProfile(em, userId)) {
+                response.sendRedirect(request.getContextPath() + "/contester/dashboard");
                 return;
             }
 

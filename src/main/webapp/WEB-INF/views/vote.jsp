@@ -115,7 +115,18 @@
               </div>
             <% } %>
         </div>
-             <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
+             <%
+               String role = session != null ? (String) session.getAttribute("userRole") : null;
+               if ("CONTESTER".equalsIgnoreCase(role)) {
+             %>
+               <%@ include file="/WEB-INF/views/fragment/bottomNavContester.jsp" %>
+             <%
+               } else {
+             %>
+               <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
+             <%
+               }
+             %>
     </section>
 </body>
 </html>

@@ -4,7 +4,7 @@ import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.ElectionSettings;
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.ContesterStatus;
-import com.bascode.model.enums.Role;
+import com.bascode.util.ContesterAccessUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -43,15 +43,8 @@ public class VotePageServlet extends HttpServlet {
             List<Contester> candidates;
 
             User user = userId != null ? em.find(User.class, userId) : null;
-            if (user != null && user.getRole() == Role.CONTESTER) {
-                Contester self = em.createQuery(
-                                "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :uid",
-                                Contester.class
-                        )
-                        .setParameter("uid", user.getId())
-                        .getResultStream()
-                        .findFirst()
-                        .orElse(null);
+            if (user != null && ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
+                Contester self = ContesterAccessUtil.findContester(em, user.getId());
                 if (self != null && self.getPosition() != null) {
                     candidates = em.createQuery(
                                     "SELECT c FROM Contester c JOIN FETCH c.user u " +

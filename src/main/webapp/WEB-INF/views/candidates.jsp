@@ -95,5 +95,6 @@
             </div>
         </div>
     </section>
+    <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
 </body>
 </html>

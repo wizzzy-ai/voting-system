@@ -1,0 +1,44 @@
+<%
+  String shellTitle = (String) request.getAttribute("adminPageTitle");
+  if (shellTitle == null) shellTitle = "Admin";
+  String shellSubtitle = (String) request.getAttribute("adminPageSubtitle");
+  if (shellSubtitle == null) shellSubtitle = "Control panel";
+  String activeAdminPage = (String) request.getAttribute("activeAdminPage");
+  if (activeAdminPage == null) activeAdminPage = "";
+  String adminFirstName = session != null && session.getAttribute("firstName") != null ? String.valueOf(session.getAttribute("firstName")) : "Admin";
+  String adminLastName = session != null && session.getAttribute("lastName") != null ? String.valueOf(session.getAttribute("lastName")) : "";
+  String adminName = (adminFirstName + " " + adminLastName).trim();
+  String adminInitials = adminFirstName.substring(0, 1).toUpperCase() + (adminLastName.isEmpty() ? "" : adminLastName.substring(0, 1).toUpperCase());
+%>
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <img src="<%=request.getContextPath()%>/images/logos/logoShort.png" alt="WeVote logo" class="h-14 w-auto object-contain">
+    </div>
+
+    <nav class="admin-nav">
+      <a href="<%=request.getContextPath()%>/admin/dashboard" class="admin-nav-link <%= "dashboard".equals(activeAdminPage) ? "is-active" : "" %>"><span>Dashboard</span></a>
+      <a href="<%=request.getContextPath()%>/admin/contesters" class="admin-nav-link <%= "contesters".equals(activeAdminPage) ? "is-active" : "" %>"><span>Contesters</span></a>
+      <a href="<%=request.getContextPath()%>/admin/users" class="admin-nav-link <%= "users".equals(activeAdminPage) ? "is-active" : "" %>"><span>Users</span></a>
+      <a href="<%=request.getContextPath()%>/admin/messages" class="admin-nav-link <%= "messages".equals(activeAdminPage) ? "is-active" : "" %>"><span>Messages</span></a>
+      <a href="<%=request.getContextPath()%>/admin/election" class="admin-nav-link <%= "election".equals(activeAdminPage) ? "is-active" : "" %>"><span>Election Settings</span></a>
+      <a href="<%=request.getContextPath()%>/admin/results" class="admin-nav-link <%= "results".equals(activeAdminPage) ? "is-active" : "" %>"><span>Results</span></a>
+      <a href="<%=request.getContextPath()%>/admin/audit" class="admin-nav-link <%= "activity".equals(activeAdminPage) ? "is-active" : "" %>"><span>Activity Log</span></a>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 class="admin-page-title"><%= shellTitle %></h1>
+        <p class="admin-page-subtitle"><%= shellSubtitle %></p>
+      </div>
+      <div class="admin-profile">
+        <div class="min-w-0">
+          <div class="text-sm font-bold text-slate-900 truncate"><%= adminName %></div>
+          <div class="text-xs text-slate-500 truncate">Administrator</div>
+        </div>
+        <span class="admin-avatar"><%= adminInitials %></span>
+        <a href="<%=request.getContextPath()%>/logout" class="admin-link-muted">Logout</a>
+      </div>
+    </div>

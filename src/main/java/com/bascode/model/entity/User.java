@@ -29,6 +29,7 @@ public class User {
     private Role role;
 
     private boolean emailVerified;
+    private boolean suspended;
     private String verificationCode;
     
     @Column(unique = true)
@@ -118,6 +119,14 @@ public class User {
     }
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
     }
 
     public String getVerificationCode() {

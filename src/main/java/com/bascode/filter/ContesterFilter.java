@@ -1,5 +1,8 @@
 package com.bascode.filter;
 
+import com.bascode.model.entity.User;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,11 +19,42 @@ public class ContesterFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userRole") == null || !"CONTESTER".equals(session.getAttribute("userRole"))) {
+        if (session == null || session.getAttribute("userRole") == null || !"CONTESTER".equals(session.getAttribute("userRole")) || isSuspended(req, session)) {
+            if (session != null) {
+                session.invalidate();
+            }
             res.sendRedirect(req.getContextPath() + "/login.jsp");
             return;
         }
         chain.doFilter(request, response);
     }
-}
 
+    private static boolean isSuspended(HttpServletRequest req, HttpSession session) {
+        EntityManagerFactory emf = (EntityManagerFactory) req.getServletContext().getAttribute("emf");
+        if (emf == null || session == null) return false;
+
+        Long userId = toLong(session.getAttribute("userId"));
+        if (userId == null) return false;
+
+        EntityManager em = emf.createEntityManager();
+        try {
+            User user = em.find(User.class, userId);
+            return user != null && user.isSuspended();
+        } finally {
+            em.close();
+        }
+    }
+
+    private static Long toLong(Object v) {
+        if (v instanceof Long) return (Long) v;
+        if (v instanceof Integer) return ((Integer) v).longValue();
+        if (v instanceof String) {
+            try {
+                return Long.valueOf((String) v);
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+}

@@ -1,10 +1,9 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*,java.time.format.DateTimeFormatter,com.bascode.model.entity.SupportConversation,com.bascode.model.entity.SupportMessage,com.bascode.model.entity.User,com.bascode.model.enums.SupportSender,com.bascode.util.HtmlUtil" %>
-<%@ include file="/WEB-INF/views/fragment/head.jsp"%>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%@ include file="/WEB-INF/views/fragment/head.jsp"%>
   <title>Admin - Support Messages</title>
   <link rel="stylesheet" href="<%=request.getContextPath()%>/css/admin.css">
   <link rel="stylesheet" href="<%=request.getContextPath()%>/css/chat.css">
@@ -14,7 +13,7 @@
     @media (max-width: 768px) { .chat-h { height: auto; } }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<body class="admin-app">
 
 <%
   @SuppressWarnings("unchecked")
@@ -43,37 +42,15 @@
       messageById.put(m.getId(), m);
     }
   }
+
+  request.setAttribute("adminPageTitle", "Messages");
+  request.setAttribute("adminPageSubtitle", "Split-pane support inbox with unread status and threaded replies.");
+  request.setAttribute("activeAdminPage", "messages");
 %>
-
-<header class="sticky top-0 z-10">
-  <div class="glass">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] soft-glow"></div>
-        <div>
-          <h1 class="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">Support Inbox</h1>
-          <p class="text-sm text-gray-600">Two-way chat with users (persistent threads).</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="<%=request.getContextPath()%>/admin/dashboard"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Admin Dashboard
-        </a>
-        <a href="<%=request.getContextPath()%>/admin/contact-inbox"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Contact Form Inbox
-        </a>
-        <a href="<%=request.getContextPath()%>/logout"
-           class="px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white hover:scale-[1.02] transition duration-200">
-          Logout
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<main class="max-w-6xl mx-auto px-4 py-6">
+<%@ include file="/WEB-INF/admin/fragments/shellStart.jspf" %>
+<div class="mb-4 flex justify-end">
+  <a href="<%=request.getContextPath()%>/admin/contact-inbox" class="admin-button-subtle px-4 py-2">Contact Form Inbox</a>
+</div>
   <section class="chat-glass chat-soft-glow rounded-3xl overflow-hidden border border-gray-100">
     <div class="flex flex-col md:flex-row">
       <!-- Sidebar -->
@@ -260,7 +237,7 @@
       </section>
     </div>
   </section>
-</main>
+<%@ include file="/WEB-INF/admin/fragments/shellEnd.jspf" %>
 
 <script type="text/javascript">
   (function () {

@@ -16,7 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebFilter(urlPatterns = {
-        "/dashboard", "/dashboard.jsp", "/vote", "/submit-vote", "/results",
+        "/dashboard", "/vote", "/submit-vote", "/results",
         "/profile", "/support", "/admin/*", "/admin.jsp", "/contester/*"
 })
 public class UnderageFilter implements Filter {

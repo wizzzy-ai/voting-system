@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
-<%@ include file="/WEB-INF/views/fragment/navbar.jsp" %>
 <%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
 <html lang="en">
 <head>
@@ -35,5 +34,6 @@
             </div>
         </div>
     </section>
+    <%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
 </body>
 </html>

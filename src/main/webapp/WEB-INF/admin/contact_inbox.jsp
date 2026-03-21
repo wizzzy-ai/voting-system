@@ -1,10 +1,9 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*,com.bascode.model.entity.ContactMessage,com.bascode.util.HtmlUtil" %>
-<%@ include file="/WEB-INF/views/fragment/head.jsp"%>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%@ include file="/WEB-INF/views/fragment/head.jsp"%>
   <title>Admin - Contact Form Inbox</title>
   <link rel="stylesheet" href="<%=request.getContextPath()%>/css/admin.css">
   <style>
@@ -16,43 +15,21 @@
     }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<body class="admin-app">
 
 <%
   @SuppressWarnings("unchecked")
   List<ContactMessage> messages = (List<ContactMessage>) request.getAttribute("messages");
   if (messages == null) messages = Collections.emptyList();
+
+  request.setAttribute("adminPageTitle", "Contact Inbox");
+  request.setAttribute("adminPageSubtitle", "Legacy one-time contact form submissions.");
+  request.setAttribute("activeAdminPage", "messages");
 %>
-
-<header class="sticky top-0 z-10">
-  <div class="glass">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] soft-glow"></div>
-        <div>
-          <h1 class="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">Contact Form Inbox</h1>
-          <p class="text-sm text-gray-600">Legacy one-time contact submissions (latest first).</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="<%=request.getContextPath()%>/admin/messages"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Support Chat Inbox
-        </a>
-        <a href="<%=request.getContextPath()%>/admin/dashboard"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Admin Dashboard
-        </a>
-        <a href="<%=request.getContextPath()%>/logout"
-           class="px-4 py-2 rounded-xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white hover:scale-[1.02] transition duration-200">
-          Logout
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<main class="max-w-6xl mx-auto px-4 py-8">
+<%@ include file="/WEB-INF/admin/fragments/shellStart.jspf" %>
+<div class="mb-4 flex justify-end">
+  <a href="<%=request.getContextPath()%>/admin/messages" class="admin-button-subtle px-4 py-2">Support Chat Inbox</a>
+</div>
   <section class="rise-in glass rounded-3xl p-5 md:p-6 soft-glow">
     <div class="flex items-center justify-between gap-4">
       <div>
@@ -113,8 +90,7 @@
       </table>
     </div>
   </section>
-</main>
+<%@ include file="/WEB-INF/admin/fragments/shellEnd.jspf" %>
 
 </body>
 </html>
-

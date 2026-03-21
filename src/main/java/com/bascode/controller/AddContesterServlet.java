@@ -104,7 +104,7 @@ public class AddContesterServlet extends HttpServlet {
             contesterUser.setBirthYear(birthYear);
             contesterUser.setState(state);
             contesterUser.setCountry(country);
-            contesterUser.setRole(Role.CONTESTER);
+            contesterUser.setRole(Role.VOTER);
             contesterUser.setEmailVerified(true);
             em.persist(contesterUser);
 

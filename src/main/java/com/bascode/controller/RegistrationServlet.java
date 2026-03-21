@@ -97,7 +97,7 @@ public class RegistrationServlet extends HttpServlet {
                 request.getRequestDispatcher("register.jsp").forward(request, response);
                 return;
             }
-            user.setRole(role);
+            user.setRole(role == Role.ADMIN ? Role.ADMIN : Role.VOTER);
 
             if (role == Role.CONTESTER) {
                 if (positionStr == null || positionStr.trim().isEmpty()) {

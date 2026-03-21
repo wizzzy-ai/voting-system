@@ -1,6 +1,8 @@
 package com.bascode.controller;
 
 import com.bascode.model.entity.User;
+import com.bascode.model.enums.Role;
+import com.bascode.util.UserCleanupUtil;
 import org.mindrot.jbcrypt.BCrypt;
 
 import jakarta.persistence.EntityManager;
@@ -36,7 +38,7 @@ public class ProfileServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String action = request.getParameter("action"); // profile | password
+        String action = request.getParameter("action"); // profile | password | delete
 
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
@@ -49,12 +51,50 @@ public class ProfileServlet extends HttpServlet {
 
             if ("password".equalsIgnoreCase(action)) {
                 handlePasswordChange(request, response, em, user);
+            } else if ("delete".equalsIgnoreCase(action)) {
+                handleDeleteAccount(request, response, em, user);
             } else {
                 handleProfileUpdate(request, response, em, user);
             }
         } finally {
             em.close();
         }
+    }
+
+    private void handleDeleteAccount(HttpServletRequest request, HttpServletResponse response, EntityManager em, User user)
+            throws ServletException, IOException {
+        String currentPassword = request.getParameter("currentPassword");
+
+        if (currentPassword == null || currentPassword.trim().isEmpty()) {
+            request.setAttribute("error", "Enter your current password to delete your account.");
+            request.setAttribute("user", user);
+            request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
+            return;
+        }
+
+        if (!BCrypt.checkpw(currentPassword, user.getPasswordHash())) {
+            request.setAttribute("error", "Current password is incorrect.");
+            request.setAttribute("user", user);
+            request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getRole() == Role.ADMIN) {
+            request.setAttribute("error", "Admin accounts cannot be deleted from the profile page.");
+            request.setAttribute("user", user);
+            request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
+            return;
+        }
+
+        em.getTransaction().begin();
+        UserCleanupUtil.deleteUserAndRelations(em, user.getId());
+        em.getTransaction().commit();
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        response.sendRedirect(request.getContextPath() + "/login.jsp?deleted=1");
     }
 
     private void handleProfileUpdate(HttpServletRequest request, HttpServletResponse response, EntityManager em, User user)

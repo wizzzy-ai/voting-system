@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ page import="java.util.*,com.bascode.model.entity.Contester,com.bascode.model.entity.User,com.bascode.model.enums.Position" %>
-<%@ include file="/WEB-INF/views/fragment/head.jsp" %>
-<%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
-
 <html lang="en">
 <head>
+  <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
   <title>Contesters - Voting System</title>
   <style>
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
@@ -13,6 +11,7 @@
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
 <%
   @SuppressWarnings("unchecked")
   Map<Position, List<Contester>> grouped = (Map<Position, List<Contester>>) request.getAttribute("grouped");
@@ -21,8 +20,7 @@
   Map<Position, Long> positionCounts = (Map<Position, Long>) request.getAttribute("positionCounts");
   if (positionCounts == null) positionCounts = new LinkedHashMap<>();
 %>
-
-  <section class="max-w-4xl mx-auto pt-6 px-4 pb-14">
+  <section class="max-w-3xl mx-auto pt-28 px-4 pb-14">
     <div class="fade-up bg-white/90 backdrop-blur rounded-3xl shadow-xl p-6 md:p-8 border border-gray-100">
       <div class="flex items-start justify-between gap-4">
         <div>
@@ -94,7 +92,7 @@
         %>
       </div>
     </div>
-    <%@ include file="/WEB-INF/views/fragment/bottomNavContester.jsp" %>
   </section>
+<%@ include file="/WEB-INF/views/fragment/bottomNavContester.jsp" %>
 </body>
 </html>

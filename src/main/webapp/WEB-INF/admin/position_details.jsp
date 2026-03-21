@@ -1,14 +1,13 @@
 <%@ page language="java" pageEncoding="UTF-8"%>
 <%@ page import="java.util.*,com.bascode.model.entity.Contester,com.bascode.model.entity.User,com.bascode.model.entity.PositionElection,com.bascode.model.enums.ContesterStatus,com.bascode.model.enums.Position" %>
-<%@ include file="/WEB-INF/views/fragment/head.jsp"%>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <%@ include file="/WEB-INF/views/fragment/head.jsp"%>
   <title>Admin - Position Details</title>
   <link rel="stylesheet" href="<%=request.getContextPath()%>/css/admin.css">
 </head>
-<body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<body class="admin-app">
 
 <%
   Position pos = (Position) request.getAttribute("position");
@@ -19,33 +18,14 @@
   long totalVotes = request.getAttribute("totalVotes") != null ? (Long) request.getAttribute("totalVotes") : 0L;
 
   String pname = pos != null ? pos.name().replace('_',' ') : "Position";
+  request.setAttribute("adminPageTitle", "Position Details");
+  request.setAttribute("adminPageSubtitle", pname + " status, vote totals, and contesters.");
+  request.setAttribute("activeAdminPage", "dashboard");
 %>
-
-<header class="sticky top-0 z-10">
-  <div class="glass">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] soft-glow"></div>
-        <div>
-          <h1 class="text-xl md:text-2xl font-extrabold text-gray-900 tracking-tight">Position: <%= pname %></h1>
-          <p class="text-sm text-gray-600">Contesters, votes, and live status.</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <a href="<%=request.getContextPath()%>/admin/dashboard"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Admin Dashboard
-        </a>
-        <a href="<%=request.getContextPath()%>/admin/contesters"
-           class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition duration-200">
-          Contesters
-        </a>
-      </div>
-    </div>
-  </div>
-</header>
-
-<main class="max-w-6xl mx-auto px-4 py-8">
+<%@ include file="/WEB-INF/admin/fragments/shellStart.jspf" %>
+<div class="mb-4 flex justify-end">
+  <a href="<%=request.getContextPath()%>/admin/contesters" class="admin-button-subtle px-4 py-2">Back to Contesters</a>
+</div>
   <section class="rise-in glass rounded-3xl p-5 md:p-6 soft-glow">
     <div class="flex flex-wrap items-center justify-between gap-4">
       <div>
@@ -141,8 +121,7 @@
       </table>
     </div>
   </section>
-</main>
+<%@ include file="/WEB-INF/admin/fragments/shellEnd.jspf" %>
 
 </body>
 </html>
-

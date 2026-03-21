@@ -32,6 +32,9 @@ public class Contester {
     @Column(nullable = false)
     private boolean winner = false;
 
+    @Column(length = 2000)
+    private String manifesto;
+
     
 	public Long getId() {
 		return id;
@@ -87,6 +90,14 @@ public class Contester {
 
     public void setWinner(boolean winner) {
         this.winner = winner;
+    }
+
+    public String getManifesto() {
+        return manifesto;
+    }
+
+    public void setManifesto(String manifesto) {
+        this.manifesto = manifesto;
     }
 
     @PrePersist

@@ -2,6 +2,7 @@
 
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.Role;
+import com.bascode.util.ContesterAccessUtil;
 import com.bascode.util.AgeUtil;
 
 import org.mindrot.jbcrypt.BCrypt;
@@ -39,14 +40,21 @@ public class LoginServlet extends HttpServlet {
                 request.getRequestDispatcher("verify-otp.jsp").forward(request, response);
                 return;
             }
+            if (user.isSuspended()) {
+                request.setAttribute("error", "Your account has been suspended. Please contact the admin.");
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
             if (!BCrypt.checkpw(password, user.getPasswordHash())) {
                 request.setAttribute("error", "Invalid credentials.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
                 return;
             }
+            boolean isContester = user.getRole() != Role.ADMIN && ContesterAccessUtil.hasContesterProfile(em, user.getId());
+
             HttpSession session = request.getSession();
             session.setAttribute("userId", user.getId());
-            session.setAttribute("userRole", user.getRole().name());
+            session.setAttribute("userRole", user.getRole() == Role.ADMIN ? Role.ADMIN.name() : (isContester ? Role.CONTESTER.name() : Role.VOTER.name()));
             session.setAttribute("userEmail", user.getEmail());
             session.setAttribute("firstName", user.getFirstName());
             session.setAttribute("lastName", user.getLastName());
@@ -60,7 +68,7 @@ public class LoginServlet extends HttpServlet {
             }
             if (user.getRole() == Role.ADMIN) {
                 response.sendRedirect(request.getContextPath() + "/admin/contesters");
-            } else if (user.getRole() == Role.CONTESTER) {
+            } else if (isContester) {
                 response.sendRedirect(request.getContextPath() + "/contester/dashboard");
             } else {
                 response.sendRedirect(request.getContextPath() + "/dashboard");

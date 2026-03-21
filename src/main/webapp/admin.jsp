@@ -106,14 +106,14 @@
 <!-- Mobile bottom nav (glassmorphism) -->
 <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 w-[calc(100%-32px)] max-w-lg md:max-w-2xl lg:max-w-3xl block">
     <div class="flex justify-between items-center p-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 dark:border-gray-700/50">
-        <a href="${pageContext.request.contextPath}/dashboard.jsp" aria-label="Accueil" class="flex flex-col items-center justify-center p-2 group">
+        <a href="${pageContext.request.contextPath}/dashboard" aria-label="Accueil" class="flex flex-col items-center justify-center p-2 group">
             <svg class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" fill="currentColor" viewBox="0 0 20 20">
                 <path d="m19.707 9.293-2-2-7-7a1 1 0 0 0-1.414 0l-7 7-2 2a1 1 0 0 0 1.414 1.414L2 10.414V18a2 2 0 0 0 2 2h3a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h3a2 2 0 0 0 2-2v-7.586l.293.293a1 1 0 0 0 1.414-1.414Z"/>
             </svg>
             <span class="text-[10px] mt-1 text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Accueil</span>
         </a>
 
-        <a href="${pageContext.request.contextPath}/results.jsp" aria-label="Populaire" class="flex flex-col items-center justify-center p-2 group">
+        <a href="${pageContext.request.contextPath}/admin/results" aria-label="Populaire" class="flex flex-col items-center justify-center p-2 group">
             <svg class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.905c.969 0 1.372 1.218.588 1.774l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.539 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.784.57-1.838-.196-1.539-1.118l1.518-4.674a1 1 0 00-.363-1.118L2.49 9.354c-.784-.57-.38-1.774.588-1.774h4.905a1 1 0 00.95-.69l1.519-4.674z" />
             </svg>

@@ -1,5 +1,5 @@
 <div class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 
-            w-[calc(100%-16px)] md:w-[calc(100%-64px)] max-w-4xl">
+            w-[calc(100%-16px)] md:w-[calc(100%-64px)] max-w-5xl">
   <div class="flex justify-between items-center bg-white/90 backdrop-blur rounded-2xl shadow-lg px-3 py-2 border border-gray-100">
 
     <!-- Dashboard -->
@@ -19,6 +19,15 @@
       <span class="text-[12px] mt-1 text-black">Candidates</span>
     </a>
 
+    <!-- Vote -->
+    <a href="<%=request.getContextPath()%>/vote" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
+      <svg class="w-7 h-7 text-black transition-colors" fill="none" stroke="black" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12.75 11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9Z"/>
+      </svg>
+      <span class="text-[12px] mt-1 text-black">Vote</span>
+    </a>
+
     <!-- Status -->
     <a href="<%=request.getContextPath()%>/contester/status" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
       <svg class="w-7 h-7 text-black transition-colors" fill="none" stroke="black" viewBox="0 0 24 24">
@@ -26,6 +35,15 @@
               d="M9 12l2 2 4-4M12 22A10 10 0 1 1 12 2a10 10 0 0 1 0 20z"/>
       </svg>
       <span class="text-[12px] mt-1 text-black">Status</span>
+    </a>
+
+    <!-- Message Admin -->
+    <a href="<%=request.getContextPath()%>/support" class="cursor-pointer flex flex-col items-center justify-center p-2 group">
+      <svg class="w-7 h-7 text-black transition-colors" fill="none" stroke="black" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 10h8M8 14h5M7 4h10a3 3 0 0 1 3 3v6a3 3 0 0 1-3 3h-4l-4 4v-4H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"/>
+      </svg>
+      <span class="text-[12px] mt-1 text-black">Admin</span>
     </a>
 
     <!-- Profile -->

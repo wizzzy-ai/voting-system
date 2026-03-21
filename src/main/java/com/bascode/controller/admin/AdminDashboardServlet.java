@@ -37,8 +37,7 @@ public class AdminDashboardServlet extends HttpServlet {
             long totalAdmins = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.role = :r", Long.class)
                     .setParameter("r", Role.ADMIN)
                     .getSingleResult();
-            long totalContesterUsers = em.createQuery("SELECT COUNT(u) FROM User u WHERE u.role = :r", Long.class)
-                    .setParameter("r", Role.CONTESTER)
+            long totalContesterUsers = em.createQuery("SELECT COUNT(c) FROM Contester c", Long.class)
                     .getSingleResult();
 
             long contesterApps = em.createQuery("SELECT COUNT(c) FROM Contester c", Long.class).getSingleResult();

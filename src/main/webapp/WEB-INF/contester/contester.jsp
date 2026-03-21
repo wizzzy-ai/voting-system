@@ -14,9 +14,30 @@
       border: 1px solid rgba(0,0,0,.06);
       backdrop-filter: blur(10px);
     }
+    .manifesto-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      padding: 1.5rem;
+    }
+    .manifesto-card {
+      width: 100%;
+      max-width: 640px;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25);
+    }
+    .manifesto-card textarea {
+      min-height: 160px;
+    }
   </style>
 </head>
 <body class="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-100">
+<%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
 
 <%
   User user = (User) request.getAttribute("user");
@@ -26,6 +47,7 @@
   boolean votingOpen = request.getAttribute("votingOpen") != null && (Boolean) request.getAttribute("votingOpen");
   boolean hasVoted = request.getAttribute("hasVoted") != null && (Boolean) request.getAttribute("hasVoted");
   String closedReason = (String) request.getAttribute("votingClosedReason");
+  boolean needsManifesto = contester != null && (contester.getManifesto() == null || contester.getManifesto().trim().isEmpty());
 %>
 
 <section class="max-w-5xl mx-auto pt-6 px-4 pb-20">
@@ -112,10 +134,62 @@
         </a>
       </div>
     </div>
+
+    <div class="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-red-900">Withdraw From Contest</h3>
+          <p class="mt-2 text-sm text-red-700">Use this to withdraw from the contest and return to your voter flow.</p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <form method="post" action="<%=request.getContextPath()%>/contest/withdraw" onsubmit="return confirm('Withdraw from this contest and return to the voter dashboard?');">
+            <button type="submit"
+                    class="px-4 py-2 rounded-xl bg-white border border-red-200 text-red-700 font-semibold hover:bg-red-100 hover:shadow transition">
+              Withdraw
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
   <%@ include file="/WEB-INF/views/fragment/bottomNavContester.jsp" %>
 </section>
+
+<% if (needsManifesto) { %>
+  <div id="manifestoModal" class="manifesto-backdrop">
+    <div class="manifesto-card p-6 md:p-8">
+      <h2 class="text-xl font-extrabold text-gray-900">Enter Your Manifesto</h2>
+      <p class="mt-2 text-sm text-gray-600">Tell the admin why you should be approved. This will be visible to admins reviewing your application.</p>
+      <form method="post" action="<%=request.getContextPath()%>/contester/manifesto" class="mt-5">
+        <label class="text-xs font-semibold text-gray-700">Manifesto (max 1000 characters)</label>
+        <textarea name="manifesto" maxlength="1000" required
+                  class="mt-2 w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[var(--purple-light)] transition"></textarea>
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <button type="button" id="dismissManifesto"
+                  class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 hover:shadow transition">
+            Later
+          </button>
+          <button type="submit"
+                  class="px-4 py-2 rounded-xl bg-[var(--green)] text-white font-semibold hover:brightness-95 hover:shadow transition">
+            Submit Manifesto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var dismiss = document.getElementById('dismissManifesto');
+      var modal = document.getElementById('manifestoModal');
+      if (dismiss && modal) {
+        dismiss.addEventListener('click', function () {
+          modal.style.display = 'none';
+        });
+      }
+    })();
+  </script>
+<% } %>
 
 </body>
 </html>

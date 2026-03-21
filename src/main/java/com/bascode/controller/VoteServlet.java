@@ -5,7 +5,7 @@ import com.bascode.model.entity.ElectionSettings;
 import com.bascode.model.entity.User;
 import com.bascode.model.entity.Vote;
 import com.bascode.model.enums.ContesterStatus;
-import com.bascode.model.enums.Role;
+import com.bascode.util.ContesterAccessUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -73,15 +73,8 @@ public class VoteServlet extends HttpServlet {
             }
 
             // Spec: contesters can vote for themselves only once.
-            if (user.getRole() == Role.CONTESTER) {
-                Contester self = em.createQuery(
-                                "SELECT c FROM Contester c WHERE c.user.id = :uid",
-                                Contester.class
-                        )
-                        .setParameter("uid", user.getId())
-                        .getResultStream()
-                        .findFirst()
-                        .orElse(null);
+            if (ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
+                Contester self = ContesterAccessUtil.findContester(em, user.getId());
                 if (self == null || !self.getId().equals(candidate.getId())) {
                     forwardToVote(request, response, em, user, "As a contester, you can only vote for yourself.");
                     return;
@@ -172,15 +165,8 @@ public class VoteServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setAttribute("error", errorMsg);
 
-        if (user != null && user.getRole() == Role.CONTESTER) {
-            Contester self = em.createQuery(
-                            "SELECT c FROM Contester c JOIN FETCH c.user u WHERE u.id = :uid",
-                            Contester.class
-                    )
-                    .setParameter("uid", user.getId())
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
+        if (user != null && ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
+            Contester self = ContesterAccessUtil.findContester(em, user.getId());
             if (self != null && self.getPosition() != null) {
                 var candidates = em.createQuery(
                                 "SELECT c FROM Contester c JOIN FETCH c.user u " +

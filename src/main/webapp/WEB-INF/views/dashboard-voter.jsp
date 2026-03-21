@@ -1,5 +1,6 @@
 <%@ page language="java" pageEncoding="UTF-8" %>
 <%@ page import="com.bascode.model.entity.User" %>
+<%@ page import="com.bascode.model.enums.Position" %>
 <%@ include file="/WEB-INF/views/fragment/head.jsp" %>
 <%@ include file="/WEB-INF/views/fragment/quickNav.jsp" %>
 
@@ -14,6 +15,8 @@
   User user = (User) request.getAttribute("user");
   boolean hasVoted = request.getAttribute("hasVoted") != null && (Boolean) request.getAttribute("hasVoted");
   String name = user != null ? (user.getFirstName() + " " + user.getLastName()) : "Voter";
+  String msg = request.getParameter("msg");
+  String type = request.getParameter("type");
 %>
 
 <section class="max-w-5xl mx-auto pt-28 px-4 pb-12">
@@ -25,6 +28,12 @@
       </div>
       <div class="hidden md:block w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--purple)] to-[var(--green)] shadow-lg"></div>
     </div>
+
+    <% if (msg != null && !msg.trim().isEmpty()) { %>
+      <div class="mt-6 rounded-2xl p-4 border <%= "success".equalsIgnoreCase(type) ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800" %>">
+        <div class="font-semibold"><%= msg %></div>
+      </div>
+    <% } %>
 
     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
       <div class="rounded-2xl border border-gray-100 bg-gradient-to-r from-white to-gray-50 p-5">
@@ -89,6 +98,28 @@
       </div>
     </div>
 
+    <div class="mt-6 rounded-2xl border border-gray-100 bg-gradient-to-r from-white to-gray-50 p-5">
+      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-gray-900">Contest for a Position</h2>
+          <p class="mt-2 text-sm text-gray-600">Choose a position after logging in as a voter. You will be redirected to the contester dashboard.</p>
+        </div>
+        <form method="post" action="<%=request.getContextPath()%>/contest/apply" class="flex flex-col sm:flex-row gap-3">
+          <select name="position" required
+                  class="px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--purple-light)]">
+            <option value="">Select position</option>
+            <% for (Position p : Position.values()) { %>
+              <option value="<%= p.name() %>"><%= p.name().replace('_', ' ') %></option>
+            <% } %>
+          </select>
+          <button type="submit"
+                  class="px-5 py-2 rounded-xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white font-semibold hover:brightness-95 hover:shadow transition">
+            Contest Now
+          </button>
+        </form>
+      </div>
+    </div>
+
     <div class="mt-6 rounded-2xl border border-gray-100 bg-white/70 p-5 flex items-center justify-between gap-4">
       <div>
         <div class="text-sm font-semibold text-gray-900">Need help?</div>
@@ -101,5 +132,6 @@
     </div>
   </div>
 </section>
+<%@ include file="/WEB-INF/views/fragment/bottomNavVoter.jsp" %>
 </body>
 </html>
