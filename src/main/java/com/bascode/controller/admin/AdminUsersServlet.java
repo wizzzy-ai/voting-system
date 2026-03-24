@@ -1,6 +1,7 @@
 package com.bascode.controller.admin;
 
 import com.bascode.model.entity.User;
+import com.bascode.model.enums.ContesterStatus;
 import com.bascode.model.enums.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -12,8 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @WebServlet("/admin/users")
 public class AdminUsersServlet extends HttpServlet {
@@ -43,12 +46,24 @@ public class AdminUsersServlet extends HttpServlet {
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
+            synchronizeContesterRoles(em);
+
             StringBuilder from = new StringBuilder(" FROM User u WHERE 1=1");
             Map<String, Object> params = new HashMap<>();
 
             if (role != null) {
-                from.append(" AND u.role = :role");
-                params.put("role", role);
+                if (role == Role.CONTESTER) {
+                    from.append(" AND EXISTS (SELECT c.id FROM Contester c WHERE c.user.id = u.id AND c.status = :approvedStatus)");
+                    params.put("approvedStatus", ContesterStatus.APPROVED);
+                } else if (role == Role.VOTER) {
+                    from.append(" AND u.role = :role");
+                    from.append(" AND NOT EXISTS (SELECT c.id FROM Contester c WHERE c.user.id = u.id AND c.status = :approvedStatus)");
+                    params.put("role", role);
+                    params.put("approvedStatus", ContesterStatus.APPROVED);
+                } else {
+                    from.append(" AND u.role = :role");
+                    params.put("role", role);
+                }
             }
             if (verified != null) {
                 from.append(" AND u.emailVerified = :verified");
@@ -74,8 +89,22 @@ public class AdminUsersServlet extends HttpServlet {
             for (var e : params.entrySet()) q.setParameter(e.getKey(), e.getValue());
 
             List<User> users = q.getResultList();
+            Set<Long> approvedContesterUserIds = new HashSet<>();
+            if (!users.isEmpty()) {
+                List<Long> ids = users.stream().map(User::getId).toList();
+                approvedContesterUserIds.addAll(
+                        em.createQuery(
+                                        "SELECT c.user.id FROM Contester c WHERE c.status = :approvedStatus AND c.user.id IN :ids",
+                                        Long.class
+                                )
+                                .setParameter("approvedStatus", ContesterStatus.APPROVED)
+                                .setParameter("ids", ids)
+                                .getResultList()
+                );
+            }
 
             request.setAttribute("users", users);
+            request.setAttribute("approvedContesterUserIds", approvedContesterUserIds);
             request.setAttribute("page", page);
             request.setAttribute("pageSize", pageSize);
             request.setAttribute("totalCount", totalCount);
@@ -102,6 +131,53 @@ public class AdminUsersServlet extends HttpServlet {
             return value > 0 ? value : fallback;
         } catch (Exception ignored) {
             return fallback;
+        }
+    }
+
+    private static void synchronizeContesterRoles(EntityManager em) {
+        List<Long> approvedIds = em.createQuery(
+                        "SELECT c.user.id FROM Contester c WHERE c.status = :approvedStatus",
+                        Long.class
+                )
+                .setParameter("approvedStatus", ContesterStatus.APPROVED)
+                .getResultList();
+
+        em.getTransaction().begin();
+        try {
+            if (!approvedIds.isEmpty()) {
+                List<User> approvedUsers = em.createQuery(
+                                "SELECT u FROM User u WHERE u.id IN :ids AND u.role <> :contesterRole",
+                                User.class
+                        )
+                        .setParameter("ids", approvedIds)
+                        .setParameter("contesterRole", Role.CONTESTER)
+                        .getResultList();
+
+                for (User user : approvedUsers) {
+                    user.setRole(Role.CONTESTER);
+                }
+            }
+
+            List<User> staleContesters = em.createQuery(
+                            "SELECT u FROM User u WHERE u.role = :contesterRole AND u.id NOT IN (" +
+                                    "SELECT c.user.id FROM Contester c WHERE c.status = :approvedStatus" +
+                                    ")",
+                            User.class
+                    )
+                    .setParameter("contesterRole", Role.CONTESTER)
+                    .setParameter("approvedStatus", ContesterStatus.APPROVED)
+                    .getResultList();
+
+            for (User user : staleContesters) {
+                user.setRole(Role.VOTER);
+            }
+
+            em.getTransaction().commit();
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw ex;
         }
     }
 

@@ -5,7 +5,6 @@ import java.time.LocalDate;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import com.bascode.dao.UserDAO;
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.Role;
 
@@ -38,6 +37,12 @@ public class CreateAdminServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        String currentRole = (session != null) ? (String) session.getAttribute("userRole") : null;
+        if (!"SUPER_ADMIN".equals(currentRole)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
 
         EntityManager em = null;
         try {
@@ -105,7 +110,7 @@ public class CreateAdminServlet extends HttpServlet {
             user.setBirthYear(birthYear);
             user.setState(state);
             user.setCountry(country);
-            user.setRole(Role.valueOf(roleStr.toUpperCase())); // ADMIN or SUPER_ADMIN
+            user.setRole(Role.ADMIN);
             user.setEmailVerified(false);
             user.setSuspended(false);
             user.setVerificationCode(null);

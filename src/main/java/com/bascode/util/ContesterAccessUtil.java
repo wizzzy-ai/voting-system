@@ -1,6 +1,7 @@
 package com.bascode.util;
 
 import com.bascode.model.entity.Contester;
+import com.bascode.model.enums.ContesterStatus;
 import jakarta.persistence.EntityManager;
 
 public final class ContesterAccessUtil {
@@ -29,5 +30,10 @@ public final class ContesterAccessUtil {
                 .getResultStream()
                 .findFirst()
                 .orElse(null);
+    }
+
+    public static boolean hasApprovedContesterProfile(EntityManager em, Long userId) {
+        Contester contester = findContester(em, userId);
+        return contester != null && contester.getStatus() == ContesterStatus.APPROVED;
     }
 }

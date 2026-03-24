@@ -2,6 +2,8 @@ package com.bascode.controller;
 
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.Role;
+import com.bascode.util.AgeUtil;
+import com.bascode.util.ContesterAccessUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -49,8 +51,12 @@ public class DashboardServlet extends HttpServlet {
                 .getSingleResult();
 
             boolean hasVoted = votedCount > 0;
+            boolean underage = AgeUtil.isUnderage(user);
+            boolean hasContesterProfile = ContesterAccessUtil.hasContesterProfile(em, user.getId());
             request.setAttribute("user", user);
             request.setAttribute("hasVoted", hasVoted);
+            request.setAttribute("underage", underage);
+            request.setAttribute("hasContesterProfile", hasContesterProfile);
 
             request.getRequestDispatcher("/WEB-INF/views/dashboard-voter.jsp")
                    .forward(request, response);

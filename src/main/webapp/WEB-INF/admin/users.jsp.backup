@@ -130,13 +130,6 @@
           <td><%= location.isEmpty() ? "—" : location %></td>
 <td>
   <div class="flex items-center gap-2">
-    <!-- View Details Button -->
-    <a href="<%=request.getContextPath()%>/admin/users/view?userId=<%= u.getId() %>" 
-       class="admin-icon-button" 
-       title="View user details">
-      👁
-    </a>
-    
     <% if (self) { %>
       <span class="text-xs text-slate-500">Current session</span>
     <% } else { 

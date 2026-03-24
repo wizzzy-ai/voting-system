@@ -1,7 +1,10 @@
 package com.bascode.controller.admin;
 
 import com.bascode.model.entity.ElectionSettings;
+import com.bascode.model.entity.PositionElection;
 import com.bascode.model.entity.User;
+import com.bascode.model.enums.Position;
+import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -14,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 @WebServlet("/admin/election")
 public class AdminElectionSettingsServlet extends HttpServlet {
@@ -24,7 +28,14 @@ public class AdminElectionSettingsServlet extends HttpServlet {
         EntityManager em = emf.createEntityManager();
         try {
             ElectionSettings s = getOrCreate(em);
+            // Get all position elections for display
+            List<PositionElection> positionElections = PositionElectionUtil.ensureAll(em);
             request.setAttribute("settings", s);
+            request.setAttribute("positionElections", positionElections);
+            request.getRequestDispatcher("/WEB-INF/admin/election.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Error loading election settings: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/admin/election.jsp").forward(request, response);
         } finally {
             em.close();
@@ -33,6 +44,15 @@ public class AdminElectionSettingsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+        
+        // Handle position-specific timer updates
+        if ("positionTimers".equals(action)) {
+            savePositionTimers(request, response);
+            return;
+        }
+        
+        // Handle global election settings
         boolean votingOpen = request.getParameter("votingOpen") != null; // checkbox
         String closesAtStr = trimToNull(request.getParameter("votingClosesAt")); // datetime-local or empty
 
@@ -62,10 +82,46 @@ public class AdminElectionSettingsServlet extends HttpServlet {
             em.merge(s);
             em.getTransaction().commit();
 
-            response.sendRedirect(request.getContextPath() + "/admin/election?msg=Saved&type=success");
+            response.sendRedirect(request.getContextPath() + "/admin/election?msg=Global%20settings%20saved&type=success");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             response.sendRedirect(request.getContextPath() + "/admin/election?msg=Failed%20to%20save&type=error");
+        } finally {
+            em.close();
+        }
+    }
+    
+    private void savePositionTimers(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        EntityManagerFactory emf = getEmf();
+        EntityManager em = emf.createEntityManager();
+        try {
+            em.getTransaction().begin();
+            
+            // Process each position's end time
+            for (Position pos : Position.values()) {
+                String endTimeStr = request.getParameter("endTime_" + pos.name());
+                if (endTimeStr != null) { // Only process if parameter was submitted
+                    PositionElection pe = PositionElectionUtil.getOrCreate(em, pos);
+                    
+                    if (endTimeStr.trim().isEmpty()) {
+                        pe.setEndTime(null); // Clear the end time
+                    } else {
+                        try {
+                            LocalDateTime endTime = LocalDateTime.parse(endTimeStr);
+                            pe.setEndTime(endTime);
+                        } catch (DateTimeParseException e) {
+                            // Skip invalid dates
+                        }
+                    }
+                    em.merge(pe);
+                }
+            }
+            
+            em.getTransaction().commit();
+            response.sendRedirect(request.getContextPath() + "/admin/election?msg=Position%20deadlines%20saved&type=success");
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            response.sendRedirect(request.getContextPath() + "/admin/election?msg=Failed%20to%20save%20position%20timers&type=error");
         } finally {
             em.close();
         }

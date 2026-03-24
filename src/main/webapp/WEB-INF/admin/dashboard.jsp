@@ -93,6 +93,7 @@
           <th>Status</th>
           <th>Approved</th>
           <th>Voting</th>
+          <th>Time Remaining</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -110,11 +111,35 @@
           <td><span class="admin-badge verified"><%= approved %>/3</span></td>
           <td><span class="admin-badge <%= p.isVotingOpen() ? "approved" : (ended ? "neutral" : "denied") %>"><%= p.isVotingOpen() ? "OPEN" : (ended ? "ENDED" : "CLOSED") %></span></td>
           <td>
+            <% if (p.getEndTime() != null && active) { 
+                 java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                 java.time.Duration duration = java.time.Duration.between(now, p.getEndTime());
+                 boolean isPast = duration.isNegative();
+                 long hours = Math.abs(duration.toHours());
+                 long minutes = Math.abs(duration.toMinutes() % 60);
+            %>
+              <span class="admin-badge <%= isPast ? "denied" : "pending" %> text-xs">
+                <%= isPast ? "Ended" : "Ends in: " + hours + "h " + minutes + "m" %>
+              </span>
+              <div class="text-xs text-slate-500 mt-1"><%= p.getEndTime().toLocalDate() %></div>
+            <% } else if (ended) { %>
+              <span class="admin-badge neutral text-xs">Completed</span>
+            <% } else { %>
+              <span class="text-xs text-slate-400">-</span>
+            <% } %>
+          </td>
+          <td>
             <div class="flex flex-wrap gap-2">
               <% if ("NOT_STARTED".equalsIgnoreCase(status)) { %>
-                <form method="post" action="<%=request.getContextPath()%>/admin/start-election" onsubmit="return confirm('Start election for <%= pname %>?');">
+                <form method="post" action="<%=request.getContextPath()%>/admin/start-election" onsubmit="return confirm('Start election for <%= pname %>?');" class="inline">
                   <input type="hidden" name="position" value="<%= p.getName() %>">
                   <button type="submit" class="admin-button px-3 py-2">Start</button>
+                </form>
+              <% } %>
+              <% if (ended) { %>
+                <form method="post" action="<%=request.getContextPath()%>/admin/start-election" onsubmit="return confirm('Restart election for <%= pname %>? This will clear previous results and require at least 2 approved contesters.');" class="inline">
+                  <input type="hidden" name="position" value="<%= p.getName() %>">
+                  <button type="submit" class="admin-button px-3 py-2">Restart</button>
                 </form>
               <% } %>
               <% if (active) { %>

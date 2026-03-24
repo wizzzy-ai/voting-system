@@ -24,11 +24,12 @@
   --admin-shadow-lg: 0 4px 6px rgba(15, 23, 42, 0.10);
 }
 
-html, body {
+html,
+body {
+  margin: 0;
   background: var(--admin-bg);
   color: var(--admin-text);
   font-family: "Poppins", sans-serif;
-  
 }
 
 @keyframes riseIn {
@@ -48,18 +49,20 @@ html, body {
 .admin-shell {
   display: flex;
   min-height: 100vh;
+  position: relative;
 }
 
 .admin-sidebar {
   width: 268px;
   flex: 0 0 268px;
-  background: rgba(255,255,255,0.96);
+  background: rgba(255, 255, 255, 0.96);
   border-right: 1px solid var(--admin-border);
   padding: 1.25rem 1rem;
   position: sticky;
   top: 0;
   height: 100vh;
   box-shadow: var(--admin-shadow);
+  z-index: 40;
 }
 
 .admin-brand {
@@ -104,18 +107,14 @@ html, body {
 }
 
 .admin-nav-link.is-active {
-  background: linear-gradient(135deg, rgba(5,150,105,.10), rgba(99,102,241,.10));
+  background: linear-gradient(135deg, rgba(5, 150, 105, .10), rgba(99, 102, 241, .10));
   color: var(--admin-primary-strong);
-}
-
-.admin-nav-icon {
-  width: 1.1rem;
-  text-align: center;
 }
 
 .admin-main {
   flex: 1;
-  padding: 1.25rem;
+  min-width: 0;
+  padding: 1rem;
 }
 
 .admin-topbar {
@@ -144,9 +143,10 @@ html, body {
   align-items: center;
   gap: .75rem;
   border: 1px solid var(--admin-border);
-  background: rgba(255,255,255,.84);
+  background: rgba(255, 255, 255, .84);
   border-radius: 999px;
   padding: .45rem .7rem;
+  max-width: 100%;
 }
 
 .admin-avatar {
@@ -226,6 +226,7 @@ html, body {
   border-radius: 8px;
   padding: .7rem .85rem;
   color: var(--admin-text);
+  min-height: 44px;
 }
 
 .admin-search input {
@@ -239,8 +240,9 @@ html, body {
 .admin-select:focus-visible,
 .admin-button:focus-visible,
 .admin-button-subtle:focus-visible,
-.admin-icon-button:focus-visible {
-  outline: 3px solid rgba(5,150,105,.18);
+.admin-icon-button:focus-visible,
+.admin-mobile-toggle:focus-visible {
+  outline: 3px solid rgba(5, 150, 105, .18);
   outline-offset: 1px;
 }
 
@@ -256,6 +258,7 @@ html, body {
   transition: all .18s ease;
   text-decoration: none;
   border: 1px solid transparent;
+  min-height: 44px;
 }
 
 .admin-button {
@@ -291,8 +294,8 @@ html, body {
 }
 
 .admin-icon-button {
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   background: #fff;
   border: 1px solid var(--admin-border);
   color: #334155;
@@ -343,10 +346,12 @@ html, body {
 
 .admin-table-wrap {
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .admin-table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
   font-size: .92rem;
 }
@@ -366,7 +371,7 @@ html, body {
 }
 
 .admin-table tbody tr:nth-child(even) {
-  background: rgba(248,250,252,.55);
+  background: rgba(248, 250, 252, .55);
 }
 
 .admin-table tbody td {
@@ -409,14 +414,144 @@ html, body {
   color: var(--admin-danger-text);
 }
 
+.admin-mobile-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  background: rgba(255, 255, 255, .92);
+  box-shadow: var(--admin-shadow);
+  color: var(--admin-secondary);
+}
+
+.admin-mobile-only {
+  display: none;
+}
+
+.admin-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .24s ease;
+  z-index: 30;
+}
+
+.admin-sidebar-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Shared responsive behavior for all admin screens: desktop keeps the fixed shell,
+   while tablet/mobile stack controls, widen tap targets, and keep tables scrollable. */
+@media (max-width: 1279px) {
+  .admin-main {
+    padding: 1rem;
+  }
+
+  .admin-topbar {
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 980px) {
+  .admin-mobile-only {
+    display: inline-flex;
+  }
+
+  body.admin-nav-open {
+    overflow: hidden;
+  }
+
   .admin-shell {
     display: block;
   }
 
   .admin-sidebar {
-    width: auto;
-    height: auto;
-    position: relative;
+    position: fixed;
+    left: 0;
+    width: min(85vw, 320px);
+    max-width: 320px;
+    transform: translateX(-100%);
+    transition: transform .24s ease;
+    z-index: 40;
+  }
+
+  .admin-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    padding: .85rem;
+  }
+
+  .admin-topbar {
+    align-items: stretch;
+    margin-bottom: .85rem;
+  }
+
+  .admin-page-title {
+    font-size: 1.45rem;
+  }
+
+  .admin-profile {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 16px;
+  }
+
+  .admin-section-head {
+    flex-direction: column;
+  }
+
+  .admin-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-search,
+  .admin-select,
+  .admin-filter-bar .admin-button,
+  .admin-filter-bar .admin-button-subtle,
+  .admin-filter-bar .admin-link-muted {
+    width: 100%;
+  }
+
+  .admin-table {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-main {
+    padding: .75rem;
+  }
+
+  .admin-card {
+    border-radius: 10px;
+  }
+
+  .admin-page-title {
+    font-size: 1.3rem;
+  }
+
+  .admin-page-subtitle,
+  .admin-section-note {
+    font-size: .85rem;
+  }
+
+  .admin-table thead th,
+  .admin-table tbody td {
+    padding: .75rem .8rem;
+  }
+
+  .admin-button,
+  .admin-button-subtle,
+  .admin-button-danger {
+    width: 100%;
   }
 }

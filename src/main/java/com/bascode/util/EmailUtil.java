@@ -5,7 +5,6 @@ import jakarta.mail.*;
 import jakarta.mail.internet.*;
 
 public class EmailUtil {
-
     // Send OTP verification email
     public static void sendVerificationEmail(String to, String otp) throws MessagingException {
         final String username = "chisomwork17@gmail.com"; // full Gmail address

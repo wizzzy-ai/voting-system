@@ -1,8 +1,10 @@
 package com.bascode.controller.contester;
 
 import com.bascode.model.entity.Contester;
-import com.bascode.model.entity.ElectionSettings;
+import com.bascode.model.entity.PositionElection;
 import com.bascode.model.entity.User;
+import com.bascode.model.enums.Position;
+import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -56,7 +58,14 @@ public class ContesterDashboardServlet extends HttpServlet {
                     .setParameter("uid", user.getId())
                     .getSingleResult();
 
-            VotingStatus vs = resolveVotingStatus(em);
+            // Check voting status for the contester's specific position
+            VotingStatus vs;
+            if (contester != null && contester.getPosition() != null) {
+                PositionElection pe = PositionElectionUtil.getOrCreate(em, contester.getPosition());
+                vs = resolvePositionVotingStatus(pe);
+            } else {
+                vs = new VotingStatus(false, "No active position found.");
+            }
 
             request.setAttribute("user", user);
             request.setAttribute("contester", contester);
@@ -109,27 +118,22 @@ public class ContesterDashboardServlet extends HttpServlet {
         }
     }
 
-    private static VotingStatus resolveVotingStatus(EntityManager em) {
-        ElectionSettings settings = em.createQuery(
-                        "SELECT s FROM ElectionSettings s ORDER BY s.id ASC",
-                        ElectionSettings.class
-                )
-                .setMaxResults(1)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-
-        if (settings == null) {
-            return new VotingStatus(true, null);
+    private static VotingStatus resolvePositionVotingStatus(PositionElection pe) {
+        if (pe == null) {
+            return new VotingStatus(false, "Election not configured.");
         }
-        boolean closedByToggle = !settings.isVotingOpen();
-        boolean closedByDeadline = settings.getVotingClosesAt() != null &&
-                !LocalDateTime.now().isBefore(settings.getVotingClosesAt());
-        if (closedByDeadline) {
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.ENDED) {
+            return new VotingStatus(false, "Election has ended.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.NOT_STARTED) {
+            return new VotingStatus(false, "Election has not started yet.");
+        }
+        if (!pe.isVotingOpen()) {
+            return new VotingStatus(false, "Voting is currently closed.");
+        }
+        // Check deadline if set
+        if (pe.getEndTime() != null && !LocalDateTime.now().isBefore(pe.getEndTime())) {
             return new VotingStatus(false, "Voting deadline reached.");
-        }
-        if (closedByToggle) {
-            return new VotingStatus(false, "Voting is currently closed by the admin.");
         }
         return new VotingStatus(true, null);
     }

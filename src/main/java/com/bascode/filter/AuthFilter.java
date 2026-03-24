@@ -21,7 +21,7 @@ public class AuthFilter implements Filter {
             res.sendRedirect(req.getContextPath() + "/login.jsp");
             return;
         }
-        if (isSuspended(req, session)) {
+        if (isMissingOrSuspended(req, session)) {
             session.invalidate();
             res.sendRedirect(req.getContextPath() + "/login.jsp?suspended=1");
             return;
@@ -29,7 +29,7 @@ public class AuthFilter implements Filter {
         chain.doFilter(request, response);
     }
 
-    private static boolean isSuspended(HttpServletRequest req, HttpSession session) {
+    private static boolean isMissingOrSuspended(HttpServletRequest req, HttpSession session) {
         EntityManagerFactory emf = (EntityManagerFactory) req.getServletContext().getAttribute("emf");
         if (emf == null) return false;
 
@@ -39,7 +39,7 @@ public class AuthFilter implements Filter {
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.find(User.class, userId);
-            return user != null && user.isSuspended();
+            return user == null || user.isSuspended();
         } finally {
             em.close();
         }

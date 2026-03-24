@@ -5,6 +5,7 @@ import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.AdminActionType;
 import com.bascode.model.enums.ContesterStatus;
+import com.bascode.model.enums.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -52,6 +53,10 @@ public class AdminContesterStatusServlet extends HttpServlet {
                 em.getTransaction().begin();
                 contester.setStatus(ContesterStatus.DENIED);
                 contester.setStatusReason(reason != null && !reason.trim().isEmpty() ? reason.trim() : "Not provided");
+                if (contester.getUser() != null) {
+                    contester.getUser().setRole(Role.VOTER);
+                    em.merge(contester.getUser());
+                }
                 em.merge(contester);
                 persistAudit(request, em, AdminActionType.CONTESTER_DENIED, "Contester", contester.getId(),
                         "Denied contester for position " + contester.getPosition());
@@ -77,6 +82,10 @@ public class AdminContesterStatusServlet extends HttpServlet {
             em.getTransaction().begin();
             contester.setStatus(ContesterStatus.APPROVED);
             contester.setStatusReason(null);
+            if (contester.getUser() != null) {
+                contester.getUser().setRole(Role.CONTESTER);
+                em.merge(contester.getUser());
+            }
             em.merge(contester);
             persistAudit(request, em, AdminActionType.CONTESTER_APPROVED, "Contester", contester.getId(),
                     "Approved contester for position " + contester.getPosition());

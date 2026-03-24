@@ -4,6 +4,7 @@ import com.bascode.model.entity.PositionElection;
 import com.bascode.model.enums.ContesterStatus;
 import com.bascode.model.enums.Position;
 import com.bascode.util.PositionElectionUtil;
+import com.bascode.util.ElectionAutoEndUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -37,7 +38,9 @@ public class AdminPositionDetailsServlet extends HttpServlet {
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
+            // Auto-end check: close election if end time reached
             PositionElection pe = PositionElectionUtil.getOrCreate(em, pos);
+            ElectionAutoEndUtil.checkAndAutoEnd(em, pe);
 
             List<Object[]> rows = em.createQuery(
                             "SELECT c, COUNT(v.id) " +
@@ -71,7 +74,9 @@ public class AdminPositionDetailsServlet extends HttpServlet {
     private static boolean isAdmin(HttpSession session) {
         if (session == null) return false;
         Object role = session.getAttribute("userRole");
-        return role != null && "ADMIN".equalsIgnoreCase(String.valueOf(role));
+        if (role == null) return false;
+        String roleStr = String.valueOf(role);
+        return "ADMIN".equalsIgnoreCase(roleStr) || "SUPER_ADMIN".equalsIgnoreCase(roleStr);
     }
 
     private EntityManagerFactory getEmf() {

@@ -14,6 +14,8 @@
 <%
   User user = (User) request.getAttribute("user");
   boolean hasVoted = request.getAttribute("hasVoted") != null && (Boolean) request.getAttribute("hasVoted");
+  boolean underage = request.getAttribute("underage") != null && (Boolean) request.getAttribute("underage");
+  boolean hasContesterProfile = request.getAttribute("hasContesterProfile") != null && (Boolean) request.getAttribute("hasContesterProfile");
   String name = user != null ? (user.getFirstName() + " " + user.getLastName()) : "Voter";
   String msg = request.getParameter("msg");
   String type = request.getParameter("type");
@@ -32,6 +34,12 @@
     <% if (msg != null && !msg.trim().isEmpty()) { %>
       <div class="mt-6 rounded-2xl p-4 border <%= "success".equalsIgnoreCase(type) ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800" %>">
         <div class="font-semibold"><%= msg %></div>
+      </div>
+    <% } %>
+
+    <% if (underage) { %>
+      <div class="mt-6 rounded-2xl p-4 border bg-amber-50 border-amber-200 text-amber-900">
+        <div class="font-semibold">You can view the dashboard, candidates, and results, but you cannot vote or contest until you are 18 or older.</div>
       </div>
     <% } %>
 
@@ -76,8 +84,8 @@
         <h2 class="text-lg font-bold text-gray-900">Vote Now</h2>
         <p class="mt-2 text-sm text-gray-600">Cast your vote for your preferred candidate.</p>
         <a href="<%=request.getContextPath()%>/vote"
-           class="mt-4 inline-flex px-4 py-2 rounded-xl bg-[var(--green)] text-white font-semibold hover:brightness-95 transition <%= hasVoted ? "opacity-50 pointer-events-none" : "" %>">
-          <%= hasVoted ? "Already Voted" : "Go to Voting" %>
+           class="mt-4 inline-flex px-4 py-2 rounded-xl bg-[var(--green)] text-white font-semibold hover:brightness-95 transition <%= (hasVoted || underage) ? "opacity-50 pointer-events-none" : "" %>">
+          <%= underage ? "Unavailable for Under 18" : (hasVoted ? "Already Voted" : "Go to Voting") %>
         </a>
       </div>
       <div class="rounded-2xl border border-gray-100 bg-gradient-to-r from-white to-gray-50 p-5 hover:shadow-md transition">
@@ -98,27 +106,31 @@
       </div>
     </div>
 
-    <div class="mt-6 rounded-2xl border border-gray-100 bg-gradient-to-r from-white to-gray-50 p-5">
-      <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-gray-900">Contest for a Position</h2>
-          <p class="mt-2 text-sm text-gray-600">Choose a position after logging in as a voter. You will be redirected to the contester dashboard.</p>
+    <% if (!hasContesterProfile) { %>
+      <div class="mt-6 rounded-2xl border border-gray-100 bg-gradient-to-r from-white to-gray-50 p-5">
+        <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-gray-900">Contest for a Position</h2>
+            <p class="mt-2 text-sm text-gray-600">Choose a position after logging in as a voter. You will be redirected to the contester dashboard.</p>
+          </div>
+          <form method="post" action="<%=request.getContextPath()%>/contest/apply" class="flex flex-col sm:flex-row gap-3">
+            <select name="position" required
+                    class="px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--purple-light)]"
+                    <%= underage ? "disabled" : "" %>>
+              <option value="">Select position</option>
+              <% for (Position p : Position.values()) { %>
+                <option value="<%= p.name() %>"><%= p.name().replace('_', ' ') %></option>
+              <% } %>
+            </select>
+            <button type="submit"
+                    class="px-5 py-2 rounded-xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white font-semibold hover:brightness-95 hover:shadow transition <%= underage ? "opacity-50 cursor-not-allowed" : "" %>"
+                    <%= underage ? "disabled" : "" %>>
+              <%= underage ? "Unavailable for Under 18" : "Contest Now" %>
+            </button>
+          </form>
         </div>
-        <form method="post" action="<%=request.getContextPath()%>/contest/apply" class="flex flex-col sm:flex-row gap-3">
-          <select name="position" required
-                  class="px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--purple-light)]">
-            <option value="">Select position</option>
-            <% for (Position p : Position.values()) { %>
-              <option value="<%= p.name() %>"><%= p.name().replace('_', ' ') %></option>
-            <% } %>
-          </select>
-          <button type="submit"
-                  class="px-5 py-2 rounded-xl bg-gradient-to-r from-[var(--purple-light)] to-[var(--purple)] text-white font-semibold hover:brightness-95 hover:shadow transition">
-            Contest Now
-          </button>
-        </form>
       </div>
-    </div>
+    <% } %>
 
     <div class="mt-6 rounded-2xl border border-gray-100 bg-white/70 p-5 flex items-center justify-between gap-4">
       <div>

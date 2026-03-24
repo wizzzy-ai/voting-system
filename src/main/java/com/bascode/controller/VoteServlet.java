@@ -1,11 +1,15 @@
 package com.bascode.controller;
 
 import com.bascode.model.entity.Contester;
-import com.bascode.model.entity.ElectionSettings;
+import com.bascode.model.entity.PositionElection;
 import com.bascode.model.entity.User;
 import com.bascode.model.entity.Vote;
 import com.bascode.model.enums.ContesterStatus;
+import com.bascode.model.enums.Position;
+import com.bascode.util.AgeUtil;
 import com.bascode.util.ContesterAccessUtil;
+import com.bascode.util.ElectionAutoEndUtil;
+import com.bascode.util.PositionElectionUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -30,13 +34,29 @@ public class VoteServlet extends HttpServlet {
         EntityManagerFactory emf = getEmf();
         EntityManager em = emf.createEntityManager();
         try {
+            // Auto-end any elections that have reached their scheduled end time
+            ElectionAutoEndUtil.autoEndExpiredElections(em);
+
             User user = resolveUser(session, em);
             if (user == null) {
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
                 return;
             }
+            if (AgeUtil.isUnderage(user)) {
+                response.sendRedirect(request.getContextPath() + "/dashboard?type=error&msg=Underage+users+cannot+vote.");
+                return;
+            }
 
-            VotingStatus vs = resolveVotingStatus(em);
+            // Determine position for voting status check
+            Position targetPosition = null;
+            if (ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
+                Contester self = ContesterAccessUtil.findContester(em, user.getId());
+                if (self != null && self.getPosition() != null) {
+                    targetPosition = self.getPosition();
+                }
+            }
+            
+            VotingStatus vs = resolveVotingStatus(em, targetPosition);
             if (!vs.open) {
                 String reason = vs.reason != null ? vs.reason : "Voting is closed.";
                 request.setAttribute("votingClosed", true);
@@ -114,27 +134,43 @@ public class VoteServlet extends HttpServlet {
         }
     }
 
-    private static VotingStatus resolveVotingStatus(EntityManager em) {
-        ElectionSettings settings = em.createQuery(
-                        "SELECT s FROM ElectionSettings s ORDER BY s.id ASC",
-                        ElectionSettings.class
-                )
-                .setMaxResults(1)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
-
-        if (settings == null) {
-            return new VotingStatus(true, null);
-        }
-        boolean closedByToggle = !settings.isVotingOpen();
-        boolean closedByDeadline = settings.getVotingClosesAt() != null &&
-                !LocalDateTime.now().isBefore(settings.getVotingClosesAt());
-        if (closedByDeadline) {
+    private static VotingStatus resolveVotingStatus(EntityManager em, Position position) {
+        // If no specific position (regular voter), check if any elections are active
+        if (position == null) {
+            java.util.List<PositionElection> activeElections = em.createQuery(
+                            "SELECT pe FROM PositionElection pe WHERE pe.status = :activeStatus",
+                            PositionElection.class)
+                    .setParameter("activeStatus", com.bascode.model.enums.ElectionStatus.ACTIVE)
+                    .getResultList();
+            
+            if (activeElections.isEmpty()) {
+                return new VotingStatus(false, "No active elections found.");
+            }
+            
+            // Check if any active election is open for voting
+            for (PositionElection pe : activeElections) {
+                if (pe.isVotingOpen()) {
+                    if (pe.getEndTime() == null || LocalDateTime.now().isBefore(pe.getEndTime())) {
+                        return new VotingStatus(true, null);
+                    }
+                }
+            }
             return new VotingStatus(false, "Voting deadline reached.");
         }
-        if (closedByToggle) {
-            return new VotingStatus(false, "Voting is currently closed by the admin.");
+        
+        // For contesters, check their specific position
+        PositionElection pe = PositionElectionUtil.getOrCreate(em, position);
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.ENDED) {
+            return new VotingStatus(false, "Election has ended.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.NOT_STARTED) {
+            return new VotingStatus(false, "Election has not started yet.");
+        }
+        if (!pe.isVotingOpen()) {
+            return new VotingStatus(false, "Voting is currently closed.");
+        }
+        if (pe.getEndTime() != null && !LocalDateTime.now().isBefore(pe.getEndTime())) {
+            return new VotingStatus(false, "Voting deadline reached.");
         }
         return new VotingStatus(true, null);
     }

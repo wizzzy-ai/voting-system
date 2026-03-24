@@ -1,6 +1,8 @@
 package com.bascode.controller.contester;
 
 import com.bascode.model.entity.Contester;
+import com.bascode.model.entity.User;
+import com.bascode.model.enums.Role;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -28,6 +30,7 @@ public class ContesterWithdrawServlet extends HttpServlet {
 
         EntityManager em = getEmf().createEntityManager();
         try {
+            User user = em.find(User.class, userId);
             Contester contester = em.createQuery(
                             "SELECT c FROM Contester c WHERE c.user.id = :userId",
                             Contester.class
@@ -47,6 +50,10 @@ public class ContesterWithdrawServlet extends HttpServlet {
             em.createQuery("DELETE FROM Vote v WHERE v.contester.id = :contesterId")
                     .setParameter("contesterId", contester.getId())
                     .executeUpdate();
+            if (user != null) {
+                user.setRole(Role.VOTER);
+                em.merge(user);
+            }
             em.remove(em.contains(contester) ? contester : em.merge(contester));
             em.getTransaction().commit();
 

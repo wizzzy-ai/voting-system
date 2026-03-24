@@ -100,7 +100,9 @@ public class AdminEndElectionServlet extends HttpServlet {
     private static boolean isAdmin(HttpSession session) {
         if (session == null) return false;
         Object role = session.getAttribute("userRole");
-        return role != null && "ADMIN".equalsIgnoreCase(String.valueOf(role));
+        if (role == null) return false;
+        String roleStr = String.valueOf(role);
+        return "ADMIN".equalsIgnoreCase(roleStr) || "SUPER_ADMIN".equalsIgnoreCase(roleStr);
     }
 
     private EntityManagerFactory getEmf() {

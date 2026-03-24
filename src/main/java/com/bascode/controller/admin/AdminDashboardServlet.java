@@ -9,6 +9,7 @@ import com.bascode.model.enums.ContesterStatus;
 import com.bascode.model.enums.Position;
 import com.bascode.model.enums.Role;
 import com.bascode.util.PositionElectionUtil;
+import com.bascode.util.ElectionAutoEndUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -59,6 +60,9 @@ public class AdminDashboardServlet extends HttpServlet {
                     )
                     .setMaxResults(8)
                     .getResultList();
+
+            // Auto-end any expired elections before displaying
+            ElectionAutoEndUtil.autoEndExpiredElections(em);
 
             List<PositionElection> positions = PositionElectionUtil.ensureAll(em);
             Map<Position, Long> approvedCounts = new HashMap<>();

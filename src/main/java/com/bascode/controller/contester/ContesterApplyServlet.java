@@ -5,6 +5,7 @@ import com.bascode.model.entity.User;
 import com.bascode.model.enums.ContesterStatus;
 import com.bascode.model.enums.Position;
 import com.bascode.model.enums.Role;
+import com.bascode.util.AgeUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -44,6 +45,10 @@ public class ContesterApplyServlet extends HttpServlet {
             User user = em.find(User.class, userId);
             if (user == null || user.getRole() == Role.ADMIN) {
                 response.sendRedirect(request.getContextPath() + "/login.jsp");
+                return;
+            }
+            if (AgeUtil.isUnderage(user)) {
+                response.sendRedirect(request.getContextPath() + "/dashboard?type=error&msg=" + encode("Underage users cannot contest."));
                 return;
             }
 

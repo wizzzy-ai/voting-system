@@ -1,5 +1,6 @@
 package com.bascode.controller.admin;
 
+import com.bascode.model.entity.Contester;
 import com.bascode.model.entity.PositionElection;
 import com.bascode.model.enums.ContesterStatus;
 import com.bascode.model.enums.ElectionStatus;
@@ -16,6 +17,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @WebServlet("/admin/start-election")
 public class AdminStartElectionServlet extends HttpServlet {
@@ -55,20 +57,39 @@ public class AdminStartElectionServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard?msg=Election%20already%20active&type=error");
                 return;
             }
-            if (pe.getStatus() == ElectionStatus.ENDED) {
-                response.sendRedirect(request.getContextPath() + "/admin/dashboard?msg=Election%20already%20ended&type=error");
-                return;
-            }
+
+            // Capture original status before modifying
+            ElectionStatus originalStatus = pe.getStatus();
 
             em.getTransaction().begin();
+            
+            // If restarting an ended election, clear previous state
+            if (originalStatus == ElectionStatus.ENDED) {
+                // Clear all winners for this position
+                List<Contester> contesters = em.createQuery(
+                                "SELECT c FROM Contester c WHERE c.position = :p",
+                                Contester.class)
+                        .setParameter("p", pos)
+                        .getResultList();
+                for (Contester c : contesters) {
+                    c.setWinner(false);
+                    em.merge(c);
+                }
+                // Clear the end time so it doesn't auto-end immediately
+                pe.setEndTime(null);
+            }
+            
             pe.setStatus(ElectionStatus.ACTIVE);
             pe.setVotingOpen(true);
             pe.setStartTime(LocalDateTime.now());
-            pe.setEndTime(null);
+            // End time is now managed in Election Settings page
             em.merge(pe);
             em.getTransaction().commit();
 
-            response.sendRedirect(request.getContextPath() + "/admin/dashboard?msg=Election%20started%20successfully&type=success");
+            String message = originalStatus == ElectionStatus.ENDED 
+                ? "Election%20restarted%20successfully" 
+                : "Election%20started%20successfully";
+            response.sendRedirect(request.getContextPath() + "/admin/dashboard?msg=" + message + "&type=success");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
             response.sendRedirect(request.getContextPath() + "/admin/dashboard?msg=Failed%20to%20start%20election&type=error");
@@ -80,7 +101,9 @@ public class AdminStartElectionServlet extends HttpServlet {
     private static boolean isAdmin(HttpSession session) {
         if (session == null) return false;
         Object role = session.getAttribute("userRole");
-        return role != null && "ADMIN".equalsIgnoreCase(String.valueOf(role));
+        if (role == null) return false;
+        String roleStr = String.valueOf(role);
+        return "ADMIN".equalsIgnoreCase(roleStr) || "SUPER_ADMIN".equalsIgnoreCase(roleStr);
     }
 
     private EntityManagerFactory getEmf() {

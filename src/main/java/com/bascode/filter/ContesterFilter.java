@@ -19,7 +19,7 @@ public class ContesterFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
-        if (session == null || session.getAttribute("userRole") == null || !"CONTESTER".equals(session.getAttribute("userRole")) || isSuspended(req, session)) {
+        if (session == null || session.getAttribute("userRole") == null || !"CONTESTER".equals(session.getAttribute("userRole")) || isMissingOrSuspended(req, session)) {
             if (session != null) {
                 session.invalidate();
             }
@@ -29,7 +29,7 @@ public class ContesterFilter implements Filter {
         chain.doFilter(request, response);
     }
 
-    private static boolean isSuspended(HttpServletRequest req, HttpSession session) {
+    private static boolean isMissingOrSuspended(HttpServletRequest req, HttpSession session) {
         EntityManagerFactory emf = (EntityManagerFactory) req.getServletContext().getAttribute("emf");
         if (emf == null || session == null) return false;
 
@@ -39,7 +39,7 @@ public class ContesterFilter implements Filter {
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.find(User.class, userId);
-            return user != null && user.isSuspended();
+            return user == null || user.isSuspended();
         } finally {
             em.close();
         }

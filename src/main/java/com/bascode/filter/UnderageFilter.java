@@ -16,8 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 
 @WebFilter(urlPatterns = {
-        "/dashboard", "/vote", "/submit-vote", "/results",
-        "/profile", "/support", "/admin/*", "/admin.jsp", "/contester/*"
+        "/vote", "/submit-vote", "/contest/apply", "/admin/*", "/admin.jsp", "/contester/*"
 })
 public class UnderageFilter implements Filter {
     @Override
@@ -48,7 +47,19 @@ public class UnderageFilter implements Filter {
         }
 
         if (Boolean.TRUE.equals(underage)) {
-            res.sendRedirect(req.getContextPath() + "/underage.jsp");
+            String uri = req.getRequestURI();
+            String ctx = req.getContextPath();
+            boolean votingOrContesting =
+                    uri.equals(ctx + "/vote") ||
+                    uri.equals(ctx + "/submit-vote") ||
+                    uri.equals(ctx + "/contest/apply") ||
+                    uri.startsWith(ctx + "/contester/");
+
+            if (votingOrContesting) {
+                res.sendRedirect(ctx + "/dashboard?type=error&msg=Underage+users+can+view+the+dashboard+but+cannot+vote+or+contest.");
+            } else {
+                res.sendRedirect(ctx + "/underage.jsp");
+            }
             return;
         }
 

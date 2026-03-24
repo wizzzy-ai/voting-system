@@ -25,11 +25,11 @@ public class AdminRoleFilter implements Filter {
         // 🔎 Debug logging
         System.out.println("[AdminRoleFilter] userRole=" + userRole
                 + ", userId=" + (session != null ? session.getAttribute("userId") : null)
-                + ", suspended=" + (session != null ? isSuspended(req, session) : "n/a"));
+                + ", suspended=" + (session != null ? isMissingOrSuspended(req, session) : "n/a"));
 
         if (userRole != null &&
             ("ADMIN".equalsIgnoreCase(userRole) || "SUPER_ADMIN".equalsIgnoreCase(userRole)) &&
-            !isSuspended(req, session)) {
+            !isMissingOrSuspended(req, session)) {
             chain.doFilter(request, response);
             return;
         }
@@ -40,7 +40,7 @@ public class AdminRoleFilter implements Filter {
         res.sendRedirect(req.getContextPath() + "/login.jsp");
     }
 
-    private static boolean isSuspended(HttpServletRequest req, HttpSession session) {
+    private static boolean isMissingOrSuspended(HttpServletRequest req, HttpSession session) {
         EntityManagerFactory emf = (EntityManagerFactory) req.getServletContext().getAttribute("emf");
         if (emf == null || session == null) return false;
 
@@ -50,7 +50,7 @@ public class AdminRoleFilter implements Filter {
         EntityManager em = emf.createEntityManager();
         try {
             User user = em.find(User.class, userId);
-            return user != null && user.isSuspended();
+            return user == null || user.isSuspended();
         } finally {
             em.close();
         }

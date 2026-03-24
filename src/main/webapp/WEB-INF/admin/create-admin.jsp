@@ -100,7 +100,6 @@
 				</button>
 			</div>
 
-			<!-- role -->
 			<div>
 				<label class="block text-sm font-medium">Role</label>
 				<select name="role" class="border rounded w-full p-2">

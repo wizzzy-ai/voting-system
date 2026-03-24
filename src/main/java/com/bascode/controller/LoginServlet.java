@@ -2,9 +2,8 @@ package com.bascode.controller;
 
 import com.bascode.model.entity.User;
 import com.bascode.model.enums.Role;
-import com.bascode.util.ContesterAccessUtil;
 import com.bascode.util.AgeUtil;
-
+import com.bascode.util.ContesterAccessUtil;
 import org.mindrot.jbcrypt.BCrypt;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -19,7 +18,7 @@ import java.io.IOException;
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) 
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String email = request.getParameter("email");
@@ -30,10 +29,10 @@ public class LoginServlet extends HttpServlet {
 
         try {
             User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
-                .setParameter("email", email)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+                    .setParameter("email", email)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
 
             if (user == null) {
                 request.setAttribute("error", "Invalid credentials.");
@@ -60,31 +59,23 @@ public class LoginServlet extends HttpServlet {
             }
 
             HttpSession session = request.getSession();
+            boolean hasApprovedContesterProfile = ContesterAccessUtil.hasApprovedContesterProfile(em, user.getId());
             session.setAttribute("userId", user.getId());
-
-            // ✅ Use the actual role instead of forcing everything to VOTER
-            String roleName = user.getRole().name();
-            session.setAttribute("userRole", roleName);
-
+            // Preserve admin roles over contester role
+            if (user.getRole() == Role.SUPER_ADMIN || user.getRole() == Role.ADMIN) {
+                session.setAttribute("userRole", user.getRole().name());
+            } else {
+                session.setAttribute("userRole", hasApprovedContesterProfile ? Role.CONTESTER.name() : user.getRole().name());
+            }
             session.setAttribute("userEmail", user.getEmail());
             session.setAttribute("firstName", user.getFirstName());
             session.setAttribute("lastName", user.getLastName());
             session.setAttribute("user", user);
+            session.setAttribute("underage", AgeUtil.isUnderage(user));
 
-            boolean underage = AgeUtil.isUnderage(user);
-            session.setAttribute("underage", underage);
-            
-            
-
-            if (underage) {
-                response.sendRedirect(request.getContextPath() + "/underage.jsp");
-                return;
-            }
-
-            // ✅ Redirect based on actual role
             if (user.getRole() == Role.ADMIN || user.getRole() == Role.SUPER_ADMIN) {
                 response.sendRedirect(request.getContextPath() + "/admin/dashboard");
-            } else if (user.getRole() == Role.CONTESTER) {
+            } else if (hasApprovedContesterProfile || user.getRole() == Role.CONTESTER) {
                 response.sendRedirect(request.getContextPath() + "/contester/dashboard");
             } else {
                 response.sendRedirect(request.getContextPath() + "/dashboard");
@@ -100,7 +91,7 @@ public class LoginServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getRequestDispatcher("login.jsp").forward(request, response);
     }
