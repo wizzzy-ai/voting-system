@@ -20,8 +20,8 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @WebServlet("/vote")
 public class VotePageServlet extends HttpServlet {
@@ -39,59 +39,94 @@ public class VotePageServlet extends HttpServlet {
 
             User user = userId != null ? em.find(User.class, userId) : null;
             
-            // Determine which position to check for voting status
-            Position targetPosition = null;
+            // Get contester info if user is a contester
+            Contester userContester = null;
+            Position userPosition = null;
             if (user != null && ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
-                Contester self = ContesterAccessUtil.findContester(em, user.getId());
-                if (self != null && self.getPosition() != null) {
-                    targetPosition = self.getPosition();
+                userContester = ContesterAccessUtil.findContester(em, user.getId());
+                if (userContester != null) {
+                    userPosition = userContester.getPosition();
                 }
             }
             
-            VotingStatus vs = resolveVotingStatus(em, targetPosition);
-            request.setAttribute("votingClosed", !vs.open);
-            request.setAttribute("votingClosedReason", vs.reason);
-
-            if (!vs.open) {
-                request.setAttribute("candidates", Collections.emptyList());
-                request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);
-                return;
-            }
-
-            List<Contester> candidates;
-
+            // Check underage restriction
             if (user != null && AgeUtil.isUnderage(user)) {
                 response.sendRedirect(request.getContextPath() + "/dashboard?type=error&msg=Underage+users+cannot+vote.");
                 return;
             }
-            if (user != null && ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
-                Contester self = ContesterAccessUtil.findContester(em, user.getId());
-                if (self != null && self.getPosition() != null) {
-                    candidates = em.createQuery(
+            
+            // Determine which positions user can vote in (all except their own if contester)
+            Map<Position, List<Contester>> candidatesByPosition = new LinkedHashMap<>();
+            Map<Position, PositionElection> electionsByPosition = new LinkedHashMap<>();
+            
+            // Get all positions
+            List<PositionElection> allElections = PositionElectionUtil.ensureAll(em);
+            
+            for (PositionElection pe : allElections) {
+                Position pos = pe.getName();
+                if (pos == null) continue;
+                
+                // Check if voting is open for this position
+                VotingStatus vs = resolveVotingStatusForPosition(pe);
+                electionsByPosition.put(pos, pe);
+                
+                // For user's own position, only include themselves as a candidate (self-vote)
+                if (pos == userPosition) {
+                    if (userContester != null && userContester.getStatus() == ContesterStatus.APPROVED) {
+                        candidatesByPosition.put(pos, Collections.singletonList(userContester));
+                    } else {
+                        candidatesByPosition.put(pos, Collections.emptyList());
+                    }
+                    continue;
+                }
+                
+                // Only show candidates if voting is open
+                if (vs.open) {
+                    List<Contester> candidates = em.createQuery(
                                     "SELECT c FROM Contester c JOIN FETCH c.user u " +
-                                            "WHERE c.status = :s AND c.position = :p AND c.user.id <> :uid " +
+                                            "WHERE c.status = :s AND c.position = :p " +
                                             "ORDER BY u.lastName ASC, u.firstName ASC",
                                     Contester.class
                             )
                             .setParameter("s", ContesterStatus.APPROVED)
-                            .setParameter("p", self.getPosition())
-                            .setParameter("uid", user.getId())
+                            .setParameter("p", pos)
                             .getResultList();
+                    candidatesByPosition.put(pos, candidates);
                 } else {
-                    candidates = Collections.emptyList();
+                    candidatesByPosition.put(pos, Collections.emptyList());
                 }
-                request.setAttribute("contesterRestricted", true);
-            } else {
-                candidates = em.createQuery(
-                                "SELECT c FROM Contester c JOIN FETCH c.user u WHERE c.status = :s ORDER BY c.position ASC, u.lastName ASC, u.firstName ASC",
-                                Contester.class
-                        )
-                        .setParameter("s", ContesterStatus.APPROVED)
-                        .getResultList();
-                request.setAttribute("contesterRestricted", false);
             }
-
-            request.setAttribute("candidates", candidates);
+            
+            request.setAttribute("userPosition", userPosition);
+            request.setAttribute("isContester", userContester != null);
+            request.setAttribute("candidatesByPosition", candidatesByPosition);
+            request.setAttribute("electionsByPosition", electionsByPosition);
+            
+            // Get positions user has already voted for
+            @SuppressWarnings("unchecked")
+            List<Position> votedPositions = em.createQuery("SELECT v.position FROM Vote v WHERE v.voter.id = :voterId", Position.class)
+                    .setParameter("voterId", userId)
+                    .getResultList();
+            Set<Position> votedPositionsSet = new HashSet<>(votedPositions);
+            request.setAttribute("votedPositions", votedPositionsSet);
+            
+            // Calculate deadline info for each position
+            Map<Position, String> deadlineInfo = new HashMap<>();
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+            
+            for (PositionElection pe : allElections) {
+                if (pe.getEndTime() != null && pe.isVotingOpen() && 
+                    pe.getStatus() == com.bascode.model.enums.ElectionStatus.ACTIVE) {
+                    long hoursRemaining = java.time.Duration.between(now, pe.getEndTime()).toHours();
+                    if (hoursRemaining > 0) {
+                        deadlineInfo.put(pe.getName(), "Ends in " + hoursRemaining + " hours (" + pe.getEndTime().format(formatter) + ")");
+                    } else if (hoursRemaining > -24) {
+                        deadlineInfo.put(pe.getName(), "Ending soon!");
+                    }
+                }
+            }
+            request.setAttribute("deadlineInfo", deadlineInfo);
             request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);
         } finally {
             em.close();
@@ -126,6 +161,25 @@ public class VotePageServlet extends HttpServlet {
             this.open = open;
             this.reason = reason;
         }
+    }
+
+    private static VotingStatus resolveVotingStatusForPosition(PositionElection pe) {
+        if (pe == null) {
+            return new VotingStatus(false, "Election not configured.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.ENDED) {
+            return new VotingStatus(false, "Election has ended.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.NOT_STARTED) {
+            return new VotingStatus(false, "Election has not started yet.");
+        }
+        if (!pe.isVotingOpen()) {
+            return new VotingStatus(false, "Voting is currently closed.");
+        }
+        if (pe.getEndTime() != null && !LocalDateTime.now().isBefore(pe.getEndTime())) {
+            return new VotingStatus(false, "Voting deadline reached.");
+        }
+        return new VotingStatus(true, null);
     }
 
     private static VotingStatus resolveVotingStatus(EntityManager em, Position position) {

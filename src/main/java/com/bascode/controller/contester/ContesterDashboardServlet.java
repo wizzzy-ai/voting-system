@@ -51,13 +51,6 @@ public class ContesterDashboardServlet extends HttpServlet {
                         .getSingleResult();
             }
 
-            long selfVoted = em.createQuery(
-                            "SELECT COUNT(v) FROM Vote v WHERE v.voter.id = :uid",
-                            Long.class
-                    )
-                    .setParameter("uid", user.getId())
-                    .getSingleResult();
-
             // Check voting status for the contester's specific position
             VotingStatus vs;
             if (contester != null && contester.getPosition() != null) {
@@ -65,6 +58,17 @@ public class ContesterDashboardServlet extends HttpServlet {
                 vs = resolvePositionVotingStatus(pe);
             } else {
                 vs = new VotingStatus(false, "No active position found.");
+            }
+
+            long selfVoted = 0L;
+            if (contester != null && contester.getPosition() != null) {
+                selfVoted = em.createQuery(
+                                "SELECT COUNT(v) FROM Vote v WHERE v.voter.id = :uid AND v.position = :position",
+                                Long.class
+                        )
+                        .setParameter("uid", user.getId())
+                        .setParameter("position", contester.getPosition())
+                        .getSingleResult();
             }
 
             request.setAttribute("user", user);

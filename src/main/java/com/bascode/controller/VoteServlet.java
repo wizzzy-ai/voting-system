@@ -10,6 +10,7 @@ import com.bascode.util.AgeUtil;
 import com.bascode.util.ContesterAccessUtil;
 import com.bascode.util.ElectionAutoEndUtil;
 import com.bascode.util.PositionElectionUtil;
+import org.hibernate.exception.ConstraintViolationException;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.servlet.ServletException;
@@ -20,6 +21,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @WebServlet("/submit-vote")
 public class VoteServlet extends HttpServlet {
@@ -66,52 +72,82 @@ public class VoteServlet extends HttpServlet {
                 return;
             }
 
-        String candidateIdStr = request.getParameter("candidateId");
-        if (candidateIdStr == null || candidateIdStr.isEmpty()) {
-            forwardToVote(request, response, em, user, "Please select a candidate.");
-                return;
-        }
-        Long candidateId;
-        try {
-            candidateId = Long.valueOf(candidateIdStr);
-        } catch (Exception e) {
-            forwardToVote(request, response, em, user, "Invalid candidate selected.");
-            return;
-        }
-            // Check if user already voted
-            long count = em.createQuery("SELECT COUNT(v) FROM Vote v WHERE v.voter.id = :voterId", Long.class)
-                .setParameter("voterId", user.getId())
-                .getSingleResult();
-            if (count > 0) {
-                forwardToVote(request, response, em, user, "You have already voted.");
+            // Get candidate first to check position
+            String candidateIdStr = request.getParameter("candidateId");
+            if (candidateIdStr == null || candidateIdStr.isEmpty()) {
+                forwardToVote(request, response, em, user, "Please select a candidate.");
                 return;
             }
+            Long candidateId;
+            try {
+                candidateId = Long.valueOf(candidateIdStr);
+            } catch (Exception e) {
+                forwardToVote(request, response, em, user, "Invalid candidate selected.");
+                return;
+            }
+            
             Contester candidate = em.find(Contester.class, candidateId);
             if (candidate == null || candidate.getStatus() != ContesterStatus.APPROVED) {
-                forwardToVote(request, response, em, user, "Candidate not found.");
+                forwardToVote(request, response, em, user, "Candidate not found or not approved.");
                 return;
             }
-
-            // Spec: contesters can vote for themselves only once.
+            
+            // Get contester info if user is a contester
+            Contester userContester = null;
+            Position userPosition = null;
             if (ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
-                Contester self = ContesterAccessUtil.findContester(em, user.getId());
-                if (self == null || !self.getId().equals(candidate.getId())) {
-                    forwardToVote(request, response, em, user, "As a contester, you can only vote for yourself.");
+                userContester = ContesterAccessUtil.findContester(em, user.getId());
+                if (userContester != null) {
+                    userPosition = userContester.getPosition();
+                }
+            }
+            
+            // Check if contester is trying to vote for someone else in their own position
+            // They can only vote for themselves in their own position
+            if (userPosition != null && userPosition == candidate.getPosition()) {
+                // Check if the candidate is themselves
+                if (userContester == null || !userContester.getId().equals(candidate.getId())) {
+                    forwardToVote(request, response, em, user, "As a contester, you can only vote for yourself in your own position.");
                     return;
                 }
+                // If it's themselves, allow the vote to proceed
+            }
+            
+            // Check voting status for the candidate's specific position
+            PositionElection pe = PositionElectionUtil.getOrCreate(em, candidate.getPosition());
+            VotingStatus posStatus = resolveVotingStatusForPosition(pe);
+            if (!posStatus.open) {
+                forwardToVote(request, response, em, user, posStatus.reason != null ? posStatus.reason : "Voting is closed for this position.");
+                return;
+            }
+            
+            // Check if user already voted for this position
+            long count = em.createQuery("SELECT COUNT(v) FROM Vote v WHERE v.voter.id = :voterId AND v.position = :position", Long.class)
+                .setParameter("voterId", user.getId())
+                .setParameter("position", candidate.getPosition())
+                .getSingleResult();
+            if (count > 0) {
+                forwardToVote(request, response, em, user, "You have already voted for this position.");
+                return;
             }
 
             Vote vote = new Vote();
             vote.setVoter(user);
             vote.setContester(candidate);
+            vote.setPosition(candidate.getPosition());
             em.getTransaction().begin();
             em.persist(vote);
             em.getTransaction().commit();
-            request.setAttribute("success", "Your vote has been cast successfully!");
+            request.setAttribute("success", "Your vote for " + candidate.getPosition().name().replace("_", " ") + " has been cast successfully!");
             request.getRequestDispatcher("/WEB-INF/views/submit-vote.jsp").forward(request, response);
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) em.getTransaction().rollback();
-            forwardToVote(request, response, em, resolveUser(session, em), "A system error occurred. Please try again.");
+            ex.printStackTrace();
+            String errorMessage = "A system error occurred. Please try again.";
+            if (isDuplicateVoteConstraint(ex)) {
+                errorMessage = "You have already voted for this position.";
+            }
+            forwardToVote(request, response, em, resolveUser(session, em), errorMessage);
         } finally {
             em.close();
         }
@@ -132,6 +168,25 @@ public class VoteServlet extends HttpServlet {
             this.open = open;
             this.reason = reason;
         }
+    }
+
+    private static VotingStatus resolveVotingStatusForPosition(PositionElection pe) {
+        if (pe == null) {
+            return new VotingStatus(false, "Election not configured.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.ENDED) {
+            return new VotingStatus(false, "Election has ended.");
+        }
+        if (pe.getStatus() == com.bascode.model.enums.ElectionStatus.NOT_STARTED) {
+            return new VotingStatus(false, "Election has not started yet.");
+        }
+        if (!pe.isVotingOpen()) {
+            return new VotingStatus(false, "Voting is currently closed.");
+        }
+        if (pe.getEndTime() != null && !LocalDateTime.now().isBefore(pe.getEndTime())) {
+            return new VotingStatus(false, "Voting deadline reached.");
+        }
+        return new VotingStatus(true, null);
     }
 
     private static VotingStatus resolveVotingStatus(EntityManager em, Position position) {
@@ -176,9 +231,8 @@ public class VoteServlet extends HttpServlet {
     }
 
     private static User resolveUser(HttpSession session, EntityManager em) {
-        Object u = session.getAttribute("user");
-        if (u instanceof User) {
-            return (User) u;
+        if (session == null) {
+            return null;
         }
 
         Object idObj = session.getAttribute("userId");
@@ -197,38 +251,96 @@ public class VoteServlet extends HttpServlet {
         return em.find(User.class, userId);
     }
 
+    private static boolean isDuplicateVoteConstraint(Throwable ex) {
+        Throwable current = ex;
+        while (current != null) {
+            if (current instanceof ConstraintViolationException) {
+                return true;
+            }
+            if (current instanceof java.sql.SQLIntegrityConstraintViolationException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null && message.contains("Duplicate entry")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
     private static void forwardToVote(HttpServletRequest request, HttpServletResponse response, EntityManager em, User user, String errorMsg)
             throws ServletException, IOException {
         request.setAttribute("error", errorMsg);
 
+        // Get contester info if user is a contester
+        Contester userContester = null;
+        Position userPosition = null;
         if (user != null && ContesterAccessUtil.hasContesterProfile(em, user.getId())) {
-            Contester self = ContesterAccessUtil.findContester(em, user.getId());
-            if (self != null && self.getPosition() != null) {
-                var candidates = em.createQuery(
+            userContester = ContesterAccessUtil.findContester(em, user.getId());
+            if (userContester != null) {
+                userPosition = userContester.getPosition();
+            }
+        }
+        
+        // Build candidates by position map (same as VotePageServlet)
+        Map<Position, List<Contester>> candidatesByPosition = new LinkedHashMap<>();
+        Map<Position, PositionElection> electionsByPosition = new LinkedHashMap<>();
+        
+        List<PositionElection> allElections = PositionElectionUtil.ensureAll(em);
+        
+        for (PositionElection pe : allElections) {
+            Position pos = pe.getName();
+            if (pos == null) continue;
+            
+            electionsByPosition.put(pos, pe);
+            
+            // For user's own position, only include themselves as a candidate (self-vote)
+            if (pos == userPosition) {
+                if (userContester != null && userContester.getStatus() == ContesterStatus.APPROVED) {
+                    candidatesByPosition.put(pos, java.util.Collections.singletonList(userContester));
+                } else {
+                    candidatesByPosition.put(pos, java.util.Collections.emptyList());
+                }
+                continue;
+            }
+            
+            // Only show candidates if voting is open
+            boolean isActive = pe.getStatus() == com.bascode.model.enums.ElectionStatus.ACTIVE;
+            boolean isVotingOpen = pe.isVotingOpen();
+            boolean deadlineOk = pe.getEndTime() == null || LocalDateTime.now().isBefore(pe.getEndTime());
+            
+            if (isActive && isVotingOpen && deadlineOk) {
+                List<Contester> candidates = em.createQuery(
                                 "SELECT c FROM Contester c JOIN FETCH c.user u " +
-                                        "WHERE c.status = :s AND c.position = :p AND c.user.id <> :uid " +
+                                        "WHERE c.status = :s AND c.position = :p " +
                                         "ORDER BY u.lastName ASC, u.firstName ASC",
                                 Contester.class
                         )
                         .setParameter("s", ContesterStatus.APPROVED)
-                        .setParameter("p", self.getPosition())
-                        .setParameter("uid", user.getId())
+                        .setParameter("p", pos)
                         .getResultList();
-                request.setAttribute("candidates", candidates);
+                candidatesByPosition.put(pos, candidates);
             } else {
-                request.setAttribute("candidates", java.util.Collections.emptyList());
+                candidatesByPosition.put(pos, java.util.Collections.emptyList());
             }
-            request.setAttribute("contesterRestricted", true);
-        } else {
-            var candidates = em.createQuery(
-                            "SELECT c FROM Contester c JOIN FETCH c.user u WHERE c.status = :s ORDER BY c.position ASC, u.lastName ASC, u.firstName ASC",
-                            Contester.class
-                    )
-                    .setParameter("s", ContesterStatus.APPROVED)
-                    .getResultList();
-            request.setAttribute("candidates", candidates);
-            request.setAttribute("contesterRestricted", false);
         }
+        
+        // Get positions user has already voted for
+        Set<Position> votedPositionsSet = new HashSet<>();
+        if (user != null) {
+            @SuppressWarnings("unchecked")
+            List<Position> votedPositions = em.createQuery("SELECT v.position FROM Vote v WHERE v.voter.id = :voterId", Position.class)
+                    .setParameter("voterId", user.getId())
+                    .getResultList();
+            votedPositionsSet.addAll(votedPositions);
+        }
+        
+        request.setAttribute("votedPositions", votedPositionsSet);
+        request.setAttribute("userPosition", userPosition);
+        request.setAttribute("isContester", userContester != null);
+        request.setAttribute("candidatesByPosition", candidatesByPosition);
+        request.setAttribute("electionsByPosition", electionsByPosition);
 
         request.getRequestDispatcher("/WEB-INF/views/vote.jsp").forward(request, response);
     }
